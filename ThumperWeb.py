@@ -51,6 +51,6 @@ async def thumper_web_init(botref,loop):
     app.router.add_route('GET', '/LEGACY/PINGPLAYER/{player}/{text}', legacy_pingplayer)
 
     srv = await loop.create_server(app.make_handler(),
-                                   '127.0.0.1', 8080)
+                                   '0.0.0.0', 8080)
     print("Server started at http://127.0.0.1:8080")
     return srv
