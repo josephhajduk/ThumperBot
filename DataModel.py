@@ -43,15 +43,30 @@ CharacterProxy.initialize(Characters)
 
 class Groups(BaseModel):
     group_name = TextField(unique=True, index=True)
-    legacy_name = TextField(unique=True, index=True)
+    legacy_name = TextField(index=True, default="")
     created_date = DateTimeField(default=datetime.datetime.now)
-    auto_add_condition = TextField(default="")
-    auto_remove_condition = TextField(default="")
+    description = TextField(default="")
+
+
+class GroupCorpLinks(BaseModel):
+    group = ForeignKeyField(Groups, related_name='corp_links')
+    corp = TextField()
+
+
+class GroupAllianceLinks(BaseModel):
+    group = ForeignKeyField(Groups, related_name='alliance_links')
+    alliance = TextField()
+
+
+class GroupShipTypeLinks(BaseModel):
+    group = ForeignKeyField(Groups, related_name='shiptype_links')
+    shiptype = TextField()
 
 
 class GroupMembership(BaseModel):
     group = ForeignKeyField(Groups, related_name='members')
     user = ForeignKeyField(User, related_name='groups')
+    linked = BooleanField(default=True)
 
     class Meta:
         indexes = (
@@ -74,7 +89,7 @@ class GroupOperators(BaseModel):
 class GroupApplications(BaseModel):
     group = ForeignKeyField(Groups, related_name='applications')
     user = ForeignKeyField(User, related_name='group_applications')
-    status = TextField()
+    status = TextField(default="Pending")
 
     class Meta:
         indexes = (
@@ -82,6 +97,26 @@ class GroupApplications(BaseModel):
             (('group', 'user'), True),
         )
 
+
+class Poll(BaseModel):
+    message = TextField(default="")
+    target = ForeignKeyField(Groups, related_name="polls")
+    started = DateTimeField(default=datetime.datetime.now)
+    ends = DateTimeField(default=datetime.datetime.max)
+
+
+class PollOption(BaseModel):
+    poll = ForeignKeyField(Poll, related_name="options")
+    text = TextField(default="")
+
+
+class PollResult(BaseModel):
+    poll = ForeignKeyField(Poll,related_name="results")
+    user = ForeignKeyField(User,related_name="poll_votes")
+    vote = ForeignKeyField(PollOption,related_name="scores")
+
 db.connect()
-#db.drop_tables([User, ApiKey, Characters, Groups, GroupApplications, GroupOperators, GroupMembership])
-#db.create_tables([User, ApiKey, Characters, Groups, GroupApplications, GroupOperators, GroupMembership])
+#db.drop_tables([Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])
+#db.create_tables([Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])
+#db.drop_tables([User, ApiKey, Characters, Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])
+#db.create_tables([User, ApiKey, Characters, Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])

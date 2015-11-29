@@ -1,0 +1,8 @@
+help - Gives Help
+setmain - Sets your main character
+listchars - Lists all your characters
+pm - Sends a private message,  the first argument should be the player name.  If there are spaces in their name you need to put the entire name in quotes
+mygroups - Lists all the groups you are a member of
+joingroup - Applies to join a group
+pinggroup - Sends a ping to a group
+xupgroup - Sends a xup to a group
