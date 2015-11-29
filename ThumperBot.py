@@ -10,12 +10,24 @@ from ThumperApiPull import check_api_loop
 from ThumperWeb import thumper_web_init
 from ThumperGroupMaster import group_loop
 
+import time
+
 class MemberConversation(telepot.helper.ChatHandler):
     def __init__(self, seed_tuple, timeout):
         super(MemberConversation, self).__init__(seed_tuple, timeout)
         self._start_time = datetime.datetime.now
         self._currentHandler = None
         self._query_params = {}
+
+    @asyncio.coroutine
+    def throttle(self, tasks):
+        def chunks(l, n):
+            for i in range(0, len(l), n):
+                yield l[i:i+n]
+
+        for chunk in chunks(tasks,20):
+            yield from asyncio.gather(*chunk)
+            yield from asyncio.sleep(1)
 
     @asyncio.coroutine
     def assert_text(self, msg):
@@ -64,25 +76,23 @@ class MemberConversation(telepot.helper.ChatHandler):
 
     @asyncio.coroutine
     def query_poll_message(self,msg):
-        content_type, chat_type, chat_id = telepot.glance2(msg)
+        if (yield from self.assert_text(msg)):
+            target_group = Groups.select().where(Groups.group_name==self._query_params["pollgroup"]).get()
 
-        target_group = Groups.select().where(Groups.group_name==self._query_params["pollgroup"]).get()
+            poll, created = Poll.create_or_get(message=msg["text"], target=target_group)
 
-        poll, created = Poll.create_or_get(message=msg["text"], target=target_group)
+            self._query_params["current_poll"] = poll
 
-        self._query_params["current_poll"] = poll
+            self._currentHandler = self.query_poll_options
 
-        self._currentHandler = self.query_poll_options
-
-        yield from self.sender.sendMessage(
-            "Give me your poll options as separate text messages,  when you are done send me /done"
-        )
+            yield from self.sender.sendMessage(
+                "Give me your poll options as separate text messages,  when you are done send me /done"
+            )
 
     @asyncio.coroutine
-    def query_poll_options(self,msg):
+    def query_poll_options(self, msg):
         if (yield from self.assert_text(msg)):
             if msg["text"] == "/done":
-
                 self._currentHandler = self.query_poll_time
 
                 yield from self.sender.sendMessage(
@@ -91,7 +101,7 @@ class MemberConversation(telepot.helper.ChatHandler):
             else:
                 poll = self._query_params["current_poll"]
                 text = msg["text"]
-                PollOption.create_or_get(text=text, poll=poll)
+                PollOption.create(text=text, poll=poll)
 
     @asyncio.coroutine
     def query_poll_time(self,msg):
@@ -107,22 +117,32 @@ class MemberConversation(telepot.helper.ChatHandler):
 
                 success = 0
                 failure = 0
+                sendtome = False
+
+                options_str = ""
+                for opt in poll.options:
+                    options_str += "  "+str(opt.text)+"\n"
+
+                themsg = "Poll from:"+self._user.main_character.name+" to "+poll.target.group_name+":\n\n"+poll.message+":\n"+options_str
+
+                tasks = []
 
                 for group_membership in GroupMembership.select().where(GroupMembership.group == poll.target):
                     try:
                         telegram_id = group_membership.user.telegram_id
 
                         poll_params[telegram_id] = poll
-
-                        yield from bot.sendMessage(telegram_id, "Poll from:"+self._user.main_character.name+" to "+poll.target.group_name+":\n\n"+poll.message, reply_markup=show_keyboard)
-
+                        tasks.append(asyncio.ensure_future(bot.sendMessage(telegram_id, themsg, reply_markup=show_keyboard)))
                         success += 1
                     except:
                         failure += 1
 
-                self._currentHandler = None
+                start_time = time.time()
+                yield from self.throttle(*tasks)
+                elapsed = time.time() - start_time
+
                 yield from self.sender.sendMessage(
-                    "Poll sent to "+str(success)+" users,  failed to send to "+str(failure)+" users\nYour poll id is: "+str(poll.id)+"\nYou can get your results with /poll"+str(poll.id)
+                    "Poll sent to "+str(success)+" users in "+str(elapsed)+" seconds, failed to send to "+str(failure)+" users\nYour poll id is: "+str(poll.id)+"\nYou can get your results with /poll"+str(poll.id)
                 )
             except ValueError:
                 yield from self.sender.sendMessage(
@@ -139,38 +159,47 @@ class MemberConversation(telepot.helper.ChatHandler):
         success = 0
         failure = 0
 
+        tasks = []
+
         for group_membership in GroupMembership.select().where(GroupMembership.group == ping_group):
             try:
                 telegram_id = group_membership.user.telegram_id
                 if content_type == "text":
-                    yield from bot.sendMessage(telegram_id, "Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]+":\n\n"+msg["text"])
+                    tasks.append(bot.sendMessage(telegram_id, "Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]+":\n\n"+msg["text"]))
 
                 elif content_type == "photo":
-                    yield from bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"])
-                    yield from bot.sendPhoto(telegram_id, msg["photo"]["file_id"], caption=msg["caption"])
+                    tasks.append(bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]))
+                    tasks.append(bot.sendPhoto(telegram_id, msg["photo"]["file_id"], caption=msg["caption"]))
 
                 elif content_type == "document":
-                    yield from bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"])
-                    yield from bot.sendDocument(telegram_id, msg["document"]["file_id"])
+                    tasks.append(bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]))
+                    tasks.append(bot.sendDocument(telegram_id, msg["document"]["file_id"]))
 
                 elif content_type == "voice":
-                    yield from bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"])
-                    yield from bot.sendVoice(telegram_id, msg["voice"]["file_id"])
+                    tasks.append(bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]))
+                    tasks.append(bot.sendVoice(telegram_id, msg["voice"]["file_id"]))
 
                 elif content_type == "video":
-                    yield from bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"])
-                    yield from bot.sendVideo(telegram_id, msg["video"]["file_id"])
+                    tasks.append(bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]))
+                    tasks.append(bot.sendVideo(telegram_id, msg["video"]["file_id"]))
 
                 elif content_type == "sticker":
-                    yield from bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"])
-                    yield from bot.sendSticker(telegram_id, msg["sticker"]["file_id"])
+                    tasks.append(bot.sendMessage(telegram_id,"Ping from:"+self._user.main_character.name+" to "+self._query_params["pinggroup"]))
+                    tasks.append(bot.sendSticker(telegram_id, msg["sticker"]["file_id"]))
                 success += 1
             except:
                 failure += 1
 
         self._currentHandler = None
+
+        start_time = time.time()
+
+        yield from self.throttle(tasks)
+
+        elapsed = time.time() - start_time
+
         yield from self.sender.sendMessage(
-            "Ping sent to "+str(success)+" users,  failed to send to "+str(failure)+" users"
+            "Ping sent to "+str(success)+" users,  failed to send to "+str(failure)+" users in "+str(elapsed)+" seconds"
         )
 
     @asyncio.coroutine
@@ -262,14 +291,15 @@ class MemberConversation(telepot.helper.ChatHandler):
 
             msg_text = msg["text"]
 
-            if len(PollOption.select().where(PollOption.text==msg_text and PollOption.poll == poll)) >0:
-                opt = PollOption.select().where(PollOption.text==msg_text and PollOption.poll == poll).get()
-                PollResult.get_or_create(poll=poll,user=self._user, vote=opt)
+            if len(PollOption.select().where(PollOption.text == msg_text and PollOption.poll == poll)) > 0:
+                opt = PollOption.select().where(PollOption.text == msg_text and PollOption.poll == poll).get()
+                PollResult.create(poll=poll, user=self._user, vote=opt)
 
-                del poll_params[self._user.telegram_id]
+                poll_params.pop(self._user.telegram_id, None)
+                self._currentHandler = None
 
                 yield from self.sender.sendMessage(
-                    'Vote Recorded...',reply_markup={'hide_keyboard': True}
+                    'Vote Recorded...', reply_markup={'hide_keyboard': True}
                 )
             else:
                 yield from self.sender.sendMessage(
@@ -281,7 +311,6 @@ class MemberConversation(telepot.helper.ChatHandler):
     def on_message(self, msg):
         content_type, chat_type, chat_id = telepot.glance2(msg)
 
-        # debug
         print(msg)
 
         if content_type == "text":
@@ -289,11 +318,11 @@ class MemberConversation(telepot.helper.ChatHandler):
                 self._currentHandler = None
                 self._query_params = {}
 
-                del poll_params[self._user.telegram_id]
+                poll_params.pop(self._user.telegram_id, None)
 
-                yield from self.sender.sendMessage(
+                return (yield from self.sender.sendMessage(
                     'Ok... lets start over'
-                )
+                ))
 
         if self._user.telegram_id in poll_params:
             self._query_params["respond_to_poll"] = poll_params[self._user.telegram_id]
@@ -301,11 +330,10 @@ class MemberConversation(telepot.helper.ChatHandler):
             if poll_params[self._user.telegram_id].ends > datetime.datetime.now():
                 return (yield from self.respond_to_poll(msg))
             else:
-                del poll_params[self._user.telegram_id]
-                yield from self.sender.sendMessage(
+                poll_params.pop(self._user.telegram_id, None)
+                return (yield from self.sender.sendMessage(
                     "Poll has expired sorry...", reply_markup={'hide_keyboard': True}
-                )
-
+                ))
 
         if self._currentHandler is not None:
             return (yield from self._currentHandler(msg))
@@ -925,7 +953,7 @@ Note:  arguments with spaces must be enclosed in quotation marks.
 
 TOKEN = "137055148:AAHOCCRyHsqlkcSZR1EyuSQxLVn76aYXirQ"
 
-poll_params = {}
+poll_params = {"Null":"Null"}
 
 bot = telepot.async.DelegatorBot(TOKEN, [
     (per_chat_id(), create_open(MemberConversation, timeout=60)),
