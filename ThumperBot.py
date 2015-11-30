@@ -10,6 +10,8 @@ from ThumperApiPull import check_api_loop
 from ThumperWeb import thumper_web_init
 from ThumperGroupMaster import group_loop
 
+from conversationhandler import ConversationHandler
+
 import time
 
 class MemberConversation(telepot.helper.ChatHandler):
@@ -952,16 +954,17 @@ Note:  arguments with spaces must be enclosed in quotation marks.
 
 
 TOKEN = "137055148:AAHOCCRyHsqlkcSZR1EyuSQxLVn76aYXirQ"
+TOKEN2 = "170018274:AAHJ_J3dGa4bQVyHk5KNXtITswr-2sfk2dM"
 
 poll_params = {"Null":"Null"}
 
-bot = telepot.async.DelegatorBot(TOKEN, [
-    (per_chat_id(), create_open(MemberConversation, timeout=60)),
+bot = telepot.async.DelegatorBot(TOKEN2, [
+    (per_chat_id(), create_open(ConversationHandler, timeout=60)),
 ])
 
 loop = asyncio.get_event_loop()
 loop.create_task(bot.messageLoop())
-loop.create_task(thumper_web_init(bot, loop))
-loop.create_task(check_api_loop(bot, loop))
-loop.create_task(group_loop(bot, loop))
+#loop.create_task(thumper_web_init(bot, loop))
+#loop.create_task(check_api_loop(bot, loop))
+#loop.create_task(group_loop(bot, loop))
 loop.run_forever()

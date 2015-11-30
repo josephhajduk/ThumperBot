@@ -116,7 +116,6 @@ class PollResult(BaseModel):
     vote = ForeignKeyField(PollOption,related_name="scores")
 
 db.connect()
-#db.drop_tables([PollOption])
 #db.create_tables([PollOption])
 #db.drop_tables([Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])
 #db.create_tables([Groups, GroupApplications, GroupOperators, GroupMembership, GroupCorpLinks, GroupAllianceLinks, GroupShipTypeLinks])
