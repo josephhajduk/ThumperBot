@@ -4,7 +4,7 @@ import asyncio
 import telepot
 from conversationhandler.strings import strings
 
-LOG_FILENAME = os.path.dirname(os.path.realpath(__file__))+'/command_log.txt'
+LOG_FILENAME = os.path.dirname(os.path.realpath(__file__))+'/../log.txt'
 
 logging.basicConfig(filename=LOG_FILENAME,
                     level=logging.DEBUG,
@@ -13,10 +13,10 @@ logging.basicConfig(filename=LOG_FILENAME,
 _s = strings
 
 @asyncio.coroutine
-def assert_text(msg):
+def assert_text(msg, chat_handler):
     content_type, chat_type, chat_id = telepot.glance2(msg)
     if content_type != 'text':
-        yield from self.sender.sendMessage(
+        yield from chat_handler.sender.sendMessage(
            _s["msg_expecttext"]
         )
         return False

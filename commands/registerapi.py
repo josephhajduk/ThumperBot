@@ -22,7 +22,7 @@ class RegisterApi(BotCommand):
 
     @asyncio.coroutine
     def handle_keyid(self, msg, chat_handler):
-        if (yield from assert_text(msg)):
+        if (yield from assert_text(msg,chat_handler)):
             try:
                 self._keyid = int(msg["text"])
 
@@ -36,7 +36,7 @@ class RegisterApi(BotCommand):
 
     @asyncio.coroutine
     def handle_verification_code(self, msg, chat_handler):
-        if (yield from assert_text(msg)):
+        if (yield from assert_text(msg,chat_handler)):
             self._verification_code = msg["text"]
 
             r = re.compile("^[a-zA-Z0-9]{64}")

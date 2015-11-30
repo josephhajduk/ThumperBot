@@ -1,10 +1,11 @@
 import asyncio
 import datetime
-from DataModel import *
+import logging
+from botdata import *
 
 async def group_loop(bot, loop):
     while True:
-        print("Starting Autogroup loop")
+        logging.info("Starting autogroup loop")
         for user in User.select():
             await auto_group(user)
         await asyncio.sleep(60 * 5)  # run check every 5 minutes
@@ -15,12 +16,12 @@ def auto_group(user):
     if user.main_character != None:
         playername = user.main_character.name
 
-    #print("Autogrouping "+playername)
+    logging.info("Autogrouping "+playername)
 
     #kill all linked groups
     for group_membership in user.groups.filter(GroupMembership.linked == True):
         group_membership.delete_instance()
-        #print("purged "+user.main_character.name + " from " +group_membership.group.group_name)
+        logging.info("purged "+user.main_character.name + " from " +group_membership.group.group_name)
 
     #get corp links
     corp_links = [list(set(
@@ -45,11 +46,10 @@ def auto_group(user):
 
     linked_groups = flat_corp_links+flat_alliance_links+flat_ship_links
 
-    #print(playername+"'s linked groups are:")
-    #print(linked_groups)
+    logging.info(playername+"'s linked groups are:"+str(linked_groups))
 
     for group_name in linked_groups:
-        group_query = Groups.select().where(Groups.group_name==group_name)
+        group_query = Group.select().where(Group.group_name==group_name)
         if len(group_query) > 0:
             group = group_query.get()
 
@@ -57,5 +57,3 @@ def auto_group(user):
                 user=user,
                 group=group
             )
-
-            #print("added to "+group_name)

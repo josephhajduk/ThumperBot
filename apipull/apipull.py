@@ -1,11 +1,15 @@
 import asyncio
-import eveapi
+import apipull.eveapi
 import datetime
-from DataModel import *
+import logging
+from botdata import *
+from conversationhandler.strings import strings
+from apipull import eveapi
+
+_s = strings
 
 async def check_api_loop(bot, loop):
     while True:
-        # await asyncio.sleep(60*5) #run apis every 5 minutes
 
         # Provide a good User-Agent header
         eveapi.set_user_agent("eveapi.py/1.3")
@@ -17,7 +21,7 @@ async def check_api_loop(bot, loop):
         for apikey in ApiKey.select().where(
                         ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8)):
             try:
-                # TODO CHECK MASK
+                #todo: CHECK MASK
 
                 auth = api.auth(keyID=apikey.key_id, vCode=apikey.verification_code)
                 result2 = auth.account.Characters()
@@ -31,7 +35,7 @@ async def check_api_loop(bot, loop):
                     print(character.name)
 
                     if hasattr(charInfo, "alliance"):
-                        dbchar, created = Characters.get_or_create(
+                        dbchar, created = Character.get_or_create(
                             user=apikey.user,
                             name=character.name,
                             eve_id=character.characterID,
@@ -43,7 +47,7 @@ async def check_api_loop(bot, loop):
                             shiptype_id=charInfo.shipTypeID,
                             location=charInfo.lastKnownLocation)
                     else:
-                        dbchar, created = Characters.get_or_create(
+                        dbchar, created = Character.get_or_create(
                             user=apikey.user,
                             name=character.name,
                             eve_id=character.characterID,
@@ -55,13 +59,12 @@ async def check_api_loop(bot, loop):
 
                     charstring += "  " + character.name + "\n"
             except:
-                print("API FAILURE")
+                logging.error("API ERROR: maybe i should add more debug info here but i didn't")
 
             apikey.last_queried = datetime.datetime.now()
             apikey.save()
 
             if apikey.user.main_character is None:
-                await bot.sendMessage(apikey.user.telegram_id,
-                                      "One of your api keys ran successfully.  These are the characters we just pulled.\n" + charstring + "\nPlease set your main character with /setmain.")
+                await bot.sendMessage(apikey.user.telegram_id, _s["msg_keysrun"])
 
         await asyncio.sleep(60 * 5)  # run apis every 5 minutes
