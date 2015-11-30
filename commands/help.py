@@ -1,5 +1,6 @@
 import asyncio
 from commands.botcommand import BotCommand
+from collections import OrderedDict
 
 
 class Help(BotCommand):
@@ -15,12 +16,20 @@ class Help(BotCommand):
 
         user_auth_level = chat_handler.user.auth_level
 
-        hmsg = "Here are the available commands:\n"
+        hmsg = "Here are the available commands:\n\n"
 
-        for command in (c for c in chat_handler.commands.values() if c.auth_level <= user_auth_level):
-            hmsg += "  "+command.key+" - "+command.description+"\n"
+        commands = (c for c in chat_handler.commands.values() if c.auth_level <= user_auth_level)
 
-        hmsg += "\nMost commands are usually invoked without any parameters, however when passing parameters directly" \
+        command_key_lens = (len(c.key) for c in commands)
+
+        maxlen = max(command_key_lens)
+
+        ocommands = sorted((c for c in chat_handler.commands.values() if c.auth_level <= user_auth_level), key=lambda t: t.key)
+
+        for command in ocommands:
+            hmsg += command.key.rjust(maxlen, " ")+" - "+command.description+"\n"
+
+        hmsg += "\n\nMost commands are usually invoked without any parameters, however when passing parameters directly" \
                 " to a command they should be passed like console commands"
         hmsg += '\n\ni.e.: /pm "Christopher Berger"'
         hmsg += '\nnot: /pm Christopher Berger'

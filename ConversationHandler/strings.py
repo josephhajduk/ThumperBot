@@ -9,8 +9,8 @@ strings = {
     'msg_expecttext':
         "At the moment I am expecting text messages",
     'msg_notvalid':
-        "That doesn't mean anything to me...\n\n/help will give you a list of currently valid commands based on your "
-        "authentication level",
+        "That doesn't mean anything to me in this context...\n\n/help will give you a list of currently valid "
+        "commands based on your authentication level",
     'msg_expectint':
         "I am expecting an integer",
     'msg_keyidinvalid':
@@ -39,7 +39,8 @@ strings = {
     'msg_maincharset':
         "Your main character has been set to:",
     'msg_silence':
-        "How many minutes would you like to be silenced for?\n\nNote this will override whatever you have set currently.",
+        "How many minutes would you like to be silenced for?\n\nNote this will override whatever you have set "
+        "currently.",
     'msg_unsilence':
         "You are no longer silenced",
     "msg_silence_set":

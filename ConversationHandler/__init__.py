@@ -69,6 +69,8 @@ class ConversationHandler(telepot.helper.ChatHandler):
 
     @asyncio.coroutine
     def on_message(self, msg):
+        print(msg)
+
         #update user every message
         if msg["from"]:
             self.telegram_id = msg["from"]["id"]

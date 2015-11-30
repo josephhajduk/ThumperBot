@@ -60,7 +60,7 @@ class Ping(BotCommand):
 
                 elif content_type == "photo":
                     tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendPhoto(telegram_id, msg["photo"]["file_id"], caption=msg["caption"]))
+                    tasks.append(self.bot.sendPhoto(telegram_id, msg["photo"][1]["file_id"], caption=msg["caption"]))
 
                 elif content_type == "document":
                     tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))

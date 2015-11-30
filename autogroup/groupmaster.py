@@ -21,6 +21,7 @@ def auto_group(user):
     #kill all linked groups
     for group_membership in user.groups.filter(GroupMembership.linked == True):
         group_membership.delete_instance()
+        group_membership.save()
         logging.info("purged "+user.main_character.name + " from " +group_membership.group.group_name)
 
     #get corp links
