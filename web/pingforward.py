@@ -6,6 +6,15 @@ import asyncio
 import time
 import math
 
+async def legacy_parse(request):
+    data = await request.post()
+
+    raw = data["messages"]
+
+    print(raw)
+
+    return web.Response(body="{}".encode('utf-8'))
+
 
 async def legacy_pinggroup(request):
     group = request.match_info.get('group', "group")
@@ -56,6 +65,8 @@ async def pingforward_web_init(botref, loop):
     app = web.Application(loop=loop)
 
     app.router.add_route('GET', '/pf/g/{group}/{from}/{text}', legacy_pinggroup)
+
+    app.router.add_route('POST', '/pf/parse', legacy_parse)
 
     app.router.add_route('GET', '/pf/p/{player}/{from}/{text}', legacy_pingplayer)
 
