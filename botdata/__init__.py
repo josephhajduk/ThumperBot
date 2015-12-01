@@ -7,6 +7,7 @@ from botdata.group import *
 
 
 #db.create_tables([Mute])
+#db.create_tables([Character])
 #db.create_tables([GroupMembership])
 #db.create_tables([User])
 #db.create_tables([User,ApiKey,Character])

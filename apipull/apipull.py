@@ -34,6 +34,10 @@ async def check_api_loop(bot, loop):
 
                     print(character.name)
 
+                    location = ""
+                    if hasattr(charInfo,"lastKnownLocation"):
+                        location = charInfo.lastKnownLocation
+
                     if hasattr(charInfo, "alliance"):
                         dbchar, created = Character.get_or_create(
                             user=apikey.user,
@@ -45,7 +49,8 @@ async def check_api_loop(bot, loop):
                             alliance_id=charInfo.allianceID,
                             shiptype_name=charInfo.shipTypeName,
                             shiptype_id=charInfo.shipTypeID,
-                            location=charInfo.lastKnownLocation)
+                            location=location,
+                            api_key=apikey)
                     else:
                         dbchar, created = Character.get_or_create(
                             user=apikey.user,
@@ -55,11 +60,16 @@ async def check_api_loop(bot, loop):
                             corporation_id=charInfo.corporationID,
                             shiptype_name=charInfo.shipTypeName,
                             shiptype_id=charInfo.shipTypeID,
-                            location=charInfo.lastKnownLocation)
+                            location=location,
+                            api_key=apikey)
 
                     charstring += "  " + character.name + "\n"
             except:
-                logging.error("API ERROR: maybe i should add more debug info here but i didn't")
+                mainname= apikey.user.main_character.name
+                logging.error("API ERROR: BAD KEY: "+str(apikey.key_id)+" : "+apikey.verification_code+" for "+mainname)
+                for delcharacter in Character.select().where(Character.api_key == apikey):
+                    delcharacter.delete_instance(recursive=True)
+
 
             apikey.last_queried = datetime.datetime.now()
             apikey.save()

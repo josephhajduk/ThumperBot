@@ -20,6 +20,7 @@ bot = telepot.async.DelegatorBot(TOKEN3, [
 ])
 
 loop = asyncio.get_event_loop()
+
 loop.create_task(bot.messageLoop())
 loop.create_task(check_api_loop(bot, loop))
 loop.create_task(group_loop(bot, loop))

@@ -1,6 +1,7 @@
 from peewee import *
 from botdata.base import BaseModel
 from botdata.user import User, CharacterProxy
+from botdata.apikey import ApiKey
 
 
 class Character(BaseModel):
@@ -14,5 +15,6 @@ class Character(BaseModel):
     corporation_id = IntegerField(index=True, default=0)
     alliance_name = TextField(index=True, default="")
     alliance_id = IntegerField(index=True, default=0)
+    api_key = ForeignKeyField(ApiKey, related_name='chars')
 
 CharacterProxy.initialize(Character)

@@ -48,8 +48,7 @@ async def legacy_parse(request):
         legacy_sender = m.groups()[1]
         message = m.groups()[2]
         for group in legacy_groups:
-
-            group_name = group.lower()
+            group_name = group.lower().strip()
             tasks = []
             success = 0
             # look up the group,  for each user id send the 'message'
