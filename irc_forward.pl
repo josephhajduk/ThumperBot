@@ -87,10 +87,10 @@ sub generate_ping() {
 	for my $network (keys %{$msgs}) {
 		for my $user (keys %{$msgs->{$network}}) {
 			for my $ele (@{$msgs->{$network}->{$user}}) {
-				push(@lines, sprintf("{'time'='[%s]', 'sender'='<%s>', message='%s'}",
-					strftime("%T", encode_json(localtime($ele->[0]))),
-					encode_json($user),
-					encode_json($ele->[1]))
+				push(@lines, sprintf('{"time": "[%s]", "sender": "%s", "message": "%s"}',
+					strftime("%T", localtime($ele->[0])),
+					$user,
+					$ele->[1])
 				);
 			}
 			push(@lines, '');

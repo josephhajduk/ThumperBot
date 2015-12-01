@@ -2,23 +2,23 @@
 from aiohttp import web
 from botdata import GroupMembership, Character, Group
 import telepot
+import logging
 import asyncio
 import time
 import math
 import json
 import re
+import sys
+import traceback
 
 
 async def legacy_parse(request):
     data = await request.post()
-
-    print("HELLO")
-
     raw = data["messages"]
 
-    print(raw)
-
-    print("ITSME")
+    #remove irc formatting
+    pattern = r'[\x02\x0F\x16\x1D\x1F]|\x03(\d{,2}(,\d{,2})?)?'
+    raw = re.sub(pattern, '', raw)
 
     if raw[-2:] == ",]":
         raw = raw[:-2]+"]"
@@ -28,45 +28,28 @@ async def legacy_parse(request):
     try:
         parsed = json.loads(raw)
     except Exception:
+        e = sys.exc_info()[0]
+        print(e)
+        traceback.print_exc()
         print(raw)
 
-    r = re.compile("\[04BROADCAST04/([\w\s;]*)]\s(\w*)\:\s(.*)", re.IGNORECASE)
+    r = re.compile("\[BROADCAST/([\w\s;]*)]\s(\w*)\:\s(.*)")
 
     msg = ""
 
     for pingrow in parsed:
-        print(pingrow)
-
         ping_time = pingrow["time"]
         sender = pingrow["sender"]
         message = pingrow["message"]
 
-        print("1")
-
         m = r.search(message)
 
-
-        print("2")
-
         legacy_groups = m.groups()[0].split(";")
-
-        print(legacy_groups)
-
         legacy_sender = m.groups()[1]
-
-
-        print(legacy_sender)
-
         message = m.groups()[2]
-
-        print(message)
-
         for group in legacy_groups:
 
-            group_name = group[2:].lower()
-
-            print(group_name)
-
+            group_name = group.lower()
             tasks = []
             success = 0
             # look up the group,  for each user id send the 'message'
@@ -90,6 +73,7 @@ async def legacy_parse(request):
 
             msg += "Ping sent to  "+str(success)+" users for "+group_name+" in "+str(rounded)+" seconds\n"
 
+    print(msg)
 
     return web.Response(body=msg.encode('utf-8'))
 
