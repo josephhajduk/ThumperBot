@@ -16,6 +16,8 @@ async def legacy_parse(request):
 
     raw = data["messages"]
 
+    print(raw)
+
     print("ITSME")
 
     if raw[-2:] == ",]":
@@ -33,6 +35,8 @@ async def legacy_parse(request):
     msg = ""
 
     for pingrow in parsed:
+        print(pingrow)
+
         ping_time = pingrow["time"]
         sender = pingrow["sender"]
         message = pingrow["message"]
@@ -44,7 +48,11 @@ async def legacy_parse(request):
         message = m.groups()[2]
 
         for group in legacy_groups:
+
             group_name = group[2:].lower()
+
+            print(group_name)
+
             tasks = []
             success = 0
             # look up the group,  for each user id send the 'message'
