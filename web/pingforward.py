@@ -41,11 +41,25 @@ async def legacy_parse(request):
         sender = pingrow["sender"]
         message = pingrow["message"]
 
+        print("1")
+
         m = r.search(message)
 
+
+        print("2")
+
         legacy_groups = m.groups()[0].split(";")
+
+        print(legacy_groups)
+
         legacy_sender = m.groups()[1]
+
+
+        print(legacy_sender)
+
         message = m.groups()[2]
+
+        print(message)
 
         for group in legacy_groups:
 
