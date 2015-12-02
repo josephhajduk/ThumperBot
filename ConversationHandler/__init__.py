@@ -20,8 +20,8 @@ class ConversationHandler(telepot.helper.ChatHandler):
             RegisterApi,
             SetMain,
             ListChars,
-            Silence,
-            Unsilence,
+            #Silence, #Not needed cause you can just do this in telegram
+            #Unsilence,
             MuteGroup,
             UnMute,
             MyGroups,
