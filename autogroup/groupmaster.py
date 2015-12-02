@@ -57,20 +57,23 @@ def auto_group(user):
         if len(group_query) > 0:
             group = group_query.get()
 
+            add = True
+
             #double check we have at least one of each link class
             if len(GroupCorpLinks.select().where(GroupCorpLinks.group == group)) > 0:
                 if group_name not in flat_corp_links:
-                    return
+                    add = False
 
             if len(GroupAllianceLinks.select().where(GroupAllianceLinks.group == group)) > 0:
                 if group_name not in flat_alliance_links:
-                    return
+                    add = False
 
             if len(GroupShipTypeLinks.select().where(GroupShipTypeLinks.group == group)) > 0:
                 if group_name not in flat_ship_links:
-                    return
+                    add = False
 
-            GroupMembership.get_or_create(
-                user=user,
-                group=group
-            )
+            if add:
+                GroupMembership.get_or_create(
+                    user=user,
+                    group=group
+                )
