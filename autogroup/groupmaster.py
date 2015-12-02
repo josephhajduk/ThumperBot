@@ -22,7 +22,7 @@ def auto_group(user):
     for group_membership in user.groups.filter(GroupMembership.linked == True):
         group_membership.delete_instance()
         group_membership.save()
-        logging.info("purged "+user.main_character.name + " from " +group_membership.group.group_name)
+        logging.info("purged "+playername + " from " +group_membership.group.group_name)
 
     #get corp links
     corp_links = [list(set(
