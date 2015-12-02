@@ -32,7 +32,11 @@ class ForwardMessage(BotCommand):
 
     @asyncio.coroutine
     def handle_message(self, msg, chat_handler):
-        self.bot.sendMessage(self._target_user.telegram_id, "Message from:" + chat_handler.user.main_character.name)
-        self.bot.forwardMessage(self._target_user.telegram_id, chat_handler.user.telegram_id, msg["message_id"])
+
+        telegram_id = self._target_user.telegram_id
+        sender_id = chat_handler.user.telegram_id
+
+        yield from self.bot.sendMessage(telegram_id, "Message from:" + chat_handler.user.main_character.name)
+        yield from self.bot.forwardMessage(telegram_id, sender_id, msg["message_id"])
         self.finished()
         yield from chat_handler.sender.sendMessage("Message forwarded...")
