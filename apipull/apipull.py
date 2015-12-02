@@ -24,6 +24,8 @@ def get_key_details(key_id, verification_code):
     except:
         return None
 
+#TODO:  if somebody modifies their main character while the api is running this will POOOP OUT
+
 async def check_api_loop(bot, loop):
     while True:
         try:
@@ -103,7 +105,8 @@ async def check_api_loop(bot, loop):
 
                             charstring += "  " + character.name + "\n"
                 except:
-                    invalid = True
+                    #invalid = True
+                    #TODO: DETECT DELETED KEY
                     logging.error("API ERROR: BAD KEY: "+str(apikey.key_id)+" : "+apikey.verification_code+" for "+mainname)
 
 
