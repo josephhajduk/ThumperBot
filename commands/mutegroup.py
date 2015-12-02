@@ -34,12 +34,15 @@ class MuteGroup(BotCommand):
             group_name = msg["text"]
 
             if len(Group.select().where(Group.group_name == group_name)) > 0:
-
                 self._group = Group.select().where(Group.group_name == group_name).get()
+                if len(Mute.select().where(Mute.group == self._group and Mute.user == chat_handler.user)) == 0:
 
-                show_keyboard = {'keyboard': [['60','1440'],['2160','10080']]}
-                self.current_handler = self.handle_time
-                yield from chat_handler.sender.sendMessage(_s["msg_howlongmute"], reply_markup=show_keyboard)
+                    show_keyboard = {'keyboard': [['60','1440'],['2160','10080']]}
+                    self.current_handler = self.handle_time
+                    yield from chat_handler.sender.sendMessage(_s["msg_howlongmute"], reply_markup=show_keyboard)
+                else:
+                    self.cancel()
+                    yield from chat_handler.sender.sendMessage("You are already muting this group",reply_markup={'hide_keyboard': True})
             else:
                 yield from chat_handler.sender.sendMessage(_s["msg_notagroup"])
 
@@ -55,7 +58,7 @@ class MuteGroup(BotCommand):
                     until=mute_until)
 
                 self.finished()
-                yield from chat_handler.sender.sendMessage(_s["msg_mutegroupuntil"]+str(chat_handler.user.silence_until),
+                yield from chat_handler.sender.sendMessage(_s["msg_mutegroupuntil"]+str(mute_until),
                                                            reply_markup={'hide_keyboard': True})
             except ValueError:
                 yield from chat_handler.sender.sendMessage(_s["msg_expectint"])

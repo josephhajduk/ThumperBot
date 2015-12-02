@@ -31,12 +31,10 @@ async def check_api_loop(bot, loop):
         api = eveapi.EVEAPIConnection()
 
         print(len(ApiKey.select().where(
-            (ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8)) and
-            (not ApiKey.invalid))))
+            (ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8)))))
 
         for apikey in ApiKey.select().where(
-                (ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8)) and
-                (not ApiKey.invalid)):
+                (ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8))):
             mainname = "nomainset"
             if apikey.user.main_character is not None:
                 mainname= apikey.user.main_character.name

@@ -2,8 +2,9 @@ import asyncio
 import telepot
 import math
 import time
+import datetime
 from commands.botcommand import BotCommand, assert_text, _s
-from botdata import Group, GroupMembership
+from botdata import Group, GroupMembership, Mute
 
 
 class Ping(BotCommand):
@@ -48,36 +49,40 @@ class Ping(BotCommand):
         tasks = []
         success = 0
         failure = 0
+        muted = 0
 
         for group_membership in GroupMembership.select().where(GroupMembership.group == self._group):
             try:
-                telegram_id = group_membership.user.telegram_id
-                main_character_name = chat_handler.user.main_character.name
-                group_name = self._group.group_name
+                if not Mute.select().where(Mute.group == self._group and Mute.user==group_membership.user and Mute.until > datetime.datetime.now()):
+                    telegram_id = group_membership.user.telegram_id
+                    main_character_name = chat_handler.user.main_character.name
+                    group_name = self._group.group_name
 
-                if content_type == "text":
-                    tasks.append(self.bot.sendMessage(telegram_id, "Ping from:" + main_character_name + " to " + group_name + ":\n\n" + msg["text"]))
+                    if content_type == "text":
+                        tasks.append(self.bot.sendMessage(telegram_id, "Ping from:" + main_character_name + " to " + group_name + ":\n\n" + msg["text"]))
 
-                elif content_type == "photo":
-                    tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendPhoto(telegram_id, msg["photo"][1]["file_id"], caption=msg["caption"]))
+                    elif content_type == "photo":
+                        tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
+                        tasks.append(self.bot.sendPhoto(telegram_id, msg["photo"][1]["file_id"], caption=msg["caption"]))
 
-                elif content_type == "document":
-                    tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendDocument(telegram_id, msg["document"]["file_id"]))
+                    elif content_type == "document":
+                        tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
+                        tasks.append(self.bot.sendDocument(telegram_id, msg["document"]["file_id"]))
 
-                elif content_type == "voice":
-                    tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendVoice(telegram_id, msg["voice"]["file_id"]))
+                    elif content_type == "voice":
+                        tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
+                        tasks.append(self.bot.sendVoice(telegram_id, msg["voice"]["file_id"]))
 
-                elif content_type == "video":
-                    tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendVideo(telegram_id, msg["video"]["file_id"]))
+                    elif content_type == "video":
+                        tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
+                        tasks.append(self.bot.sendVideo(telegram_id, msg["video"]["file_id"]))
 
-                elif content_type == "sticker":
-                    tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
-                    tasks.append(self.bot.sendSticker(telegram_id, msg["sticker"]["file_id"]))
-                success += 1
+                    elif content_type == "sticker":
+                        tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
+                        tasks.append(self.bot.sendSticker(telegram_id, msg["sticker"]["file_id"]))
+                    success += 1
+                else:
+                    muted += 1
             except:
                 failure += 1
 

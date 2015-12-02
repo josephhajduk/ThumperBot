@@ -29,10 +29,6 @@ class Help(BotCommand):
         for command in ocommands:
             hmsg += command.key.rjust(maxlen, " ")+" - "+command.description+"\n"
 
-        hmsg += "\n\nMost commands are usually invoked without any parameters, however when passing parameters directly" \
-                " to a command they should be passed like console commands"
-        hmsg += '\n\ni.e.: /pm "Christopher Berger"'
-        hmsg += '\nnot: /pm Christopher Berger'
         hmsg += "\n"
         hmsg += "\nYou can cancel whatever you are doing at any time with /cancel"
         hmsg += "\n"

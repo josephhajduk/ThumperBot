@@ -10,7 +10,6 @@ class User(BaseModel):
     created_date = DateTimeField(default=datetime.datetime.now)
     auth_level = IntegerField(default="0")
     main_character = ForeignKeyField(CharacterProxy, index=True, null=True, default=None)
-    silence_until = DateTimeField(default=datetime.datetime.min)
 
 class Mute(BaseModel):
     group = ForeignKeyField(GroupProxy, related_name='user_mutes', index=True)
