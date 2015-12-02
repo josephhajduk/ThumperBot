@@ -8,4 +8,5 @@ class ApiKey(BaseModel):
     key_id = IntegerField(unique=True)
     verification_code = TextField()
     last_queried = DateTimeField(default=datetime.datetime.min)
-    mask = TextField(default="")
+    mask = IntegerField(default=0)
+    invalid = BooleanField(default=False)

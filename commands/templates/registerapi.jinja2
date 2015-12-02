@@ -1,0 +1,65 @@
+((((( QUERY_KEY_ID )))))
+{% if handler.user.main_character is none %}
+    In order to do anything useful with me,  you will need to provide me some API keys and set your main character.
+{% endif %}
+I require private access to your CharacterInfo data.  This allows me to see all your characters as well as where they are located and what ship they are currently sitting in.
+
+It also allows me to see your account balance, skill points, and other stuff but I don't store these currently.
+
+If you want to know more about exactly what data you will be exposing,  you can read more the [CCP documentation](http://wiki.eve-id.net/APIv2_Eve_CharacterInfo_XML)
+
+You can create a new API key at [this link](https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=16777216)
+
+*NOTE: YOU MUST SET THE KEY TO HAVE NO EXPIRY*
+
+Once you are done please reply with your *Key ID*, it should be 7 or 8 digit integer
+
+((((( KEYID_INVALID )))))
+The key id you provided ( {{ command._keyid }} ) looks like it is to low to be a valid key id,
+
+Please try again, or you can /cancel
+
+((((( KEYID_NOT_INT )))))
+The key id you provided ( {{ command._keyid }} ) doesn't look like an integer...
+
+Please try again, or you can /cancel
+
+((((( QUERY_VERIFICATION_CODE )))))
+Ok great...
+
+Now please provide your verification code,  it should be 64 alphaneumeric characters and look something like this example:
+    *KiF2SwEEwAfmzYpzGtBfGSYc6GBl7cil9y3nofkjAO3yOMVp9gM4Hp6bZeEtmyu7*
+
+((((( KEY_ALREADY_EXISTS )))))
+The key id you provided ( {{ command._keyid }} ) looks like it is already owned by someone else.  If you believe this is an error you should contact an administrator.
+
+((((( KEY_ADDED )))))
+The key was successfully added.
+{% if handler.user.main_character is none %}
+Once it gets pulled you will hear back from me.  This should not be more than 5 minutes.
+{% endif %}
+
+((((( KEY_EXPIRES )))))
+The key id you provided ( {{ command._keyid }} ) looks like it is set to expire,  please start over with /registerapi and make sure you check the no expiry box when you create the key.
+
+Make sure you delete the incorrect key and make a new one rather than just setting it not to expire.
+
+((((( KEY_WRONG_MASK )))))
+The key id you provided ( {{ command._keyid }} ) looks like it has the wrong access mask,  please start over with /registerapi and make sure you check the *private* CharacterInfo mask.
+
+Or you could just click the perfect link I provided you...  don't forget to check no expiry aswell.
+
+Make sure you delete the incorrect key and make a new one rather than trying to fix the one you just made.
+
+((((( KEY_NOT_ACCOUNT )))))
+The key id you provided ( {{ command._keyid }} ) looks like it is a single character key,  you must include all characters.
+Please start over with /registerapi and make sure you set the key to All characters
+
+Make sure you delete the incorrect key and make a new one rather than trying to fix the one you just made.
+
+((((( KEY_INVALID )))))
+The key id you provided ( {{ command._keyid }} ) doesn't seem to be working,  either because its invalid or CCP services are dead.  Either way you will have to try again with /registerapi
+
+((((( KEY_INVALID )))))
+That verification code doesn't look right,  you sent me:
+{{ command._verification_code }}

@@ -17,11 +17,12 @@ strings = {
         "That key id seems invalid,  please double check it",
     'msg_q_keyid':
         "In order to do anything useful with me,  you will need to provide me some API keys\nYou can create a new "
-        "API key at https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=1073741823\n\nOnce "
-        "you are done please reply with your 'Key ID', it should be 7 or 8 digit integer",
+        "API key at https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=16777216\n\nNOTE: YOU "
+        "MUST SET THE KEY TO HAVE NO EXPIRY\n\nOnce you are done please reply with your 'Key ID', it should be "
+        "7 or 8 digit integer",
     'msg_q_vcode':
         "Now please provide your verification code,  it should be 64 alphaneumeric characters and look something like "
-        "this:\n\nKiF2SwEEwAfmzYpzGtBfGSYc6GBl7cil9y3nofkjAO3yOMVp9gM4Hp6bZeEtmyu7",
+        "this:\n\nEXAMPLE: KiF2SwEEwAfmzYpzGtBfGSYc6GBl7cil9y3nofkjAO3yOMVp9gM4Hp6bZeEtmyu7",
     'msg_vcodeinvalid':
         "That verification code is not valid,  please double check it",
     'msg_keyadded':
@@ -103,7 +104,14 @@ strings = {
         "User is no longer elevated...",
     "msg_userunbanned":
         "User is no longer banned...",
-
+    "msg_keyinvalid":
+        "Either your key is invalid or CCP api is down, try again later or fix your key",
+    "msg_reqaccountkey":
+        "Incorrect key type,  I require an Account key...  Please start over with /registerapi",
+    "msg_wrongmask":
+        "Incorrect key mask,  Please start over with /registerapi",
+    "msg_keyexpires":
+        "The key must have no expiry set... Please start over with /registerapi"
 
 
 

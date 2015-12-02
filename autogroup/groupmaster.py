@@ -51,6 +51,9 @@ def auto_group(user):
 
     for group_name in linked_groups:
         group_query = Group.select().where(Group.group_name==group_name)
+
+        #make sure if this group has any links, that the player is in all level of links
+
         if len(group_query) > 0:
             group = group_query.get()
 

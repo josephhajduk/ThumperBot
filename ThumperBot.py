@@ -16,7 +16,7 @@ TOKEN2 = "170018274:AAHJ_J3dGa4bQVyHk5KNXtITswr-2sfk2dM"
 TOKEN3 = "154397353:AAEChVXNz7BXxenwjNokfryfZqUgiwZLN6A"
 
 bot = telepot.async.DelegatorBot(TOKEN3, [
-    (per_chat_id(), create_open(ConversationHandler, timeout=60)),
+    (per_chat_id(), create_open(ConversationHandler, timeout=60*10)),
 ])
 
 loop = asyncio.get_event_loop()
