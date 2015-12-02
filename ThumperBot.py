@@ -15,7 +15,7 @@ TOKEN = "137055148:AAHOCCRyHsqlkcSZR1EyuSQxLVn76aYXirQ"
 TOKEN2 = "170018274:AAHJ_J3dGa4bQVyHk5KNXtITswr-2sfk2dM"
 TOKEN3 = "154397353:AAEChVXNz7BXxenwjNokfryfZqUgiwZLN6A"
 
-bot = telepot.async.DelegatorBot(TOKEN3, [
+bot = telepot.async.DelegatorBot(TOKEN2, [
     (per_chat_id(), create_open(ConversationHandler, timeout=60*10)),
 ])
 
