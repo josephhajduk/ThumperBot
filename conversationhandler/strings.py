@@ -66,7 +66,9 @@ strings = {
     "msg_nousergroups":
         "You are not in any groups...",
     "msg_pingmessageq":
-        "What would you like to ping?\n",
+        "What would you like to ping?",
+    "msg_forwardmessageq":
+        "What would you like to forward?",
     "msg_whichcharacter":
         "Which character?",
     "msg_cantfindchar":
