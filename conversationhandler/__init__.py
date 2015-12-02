@@ -43,6 +43,7 @@ class ConversationHandler(telepot.helper.ChatHandler):
             UnTrust,
             UnElevate,
             TakeAdmin,
+            ForwardMessage,
         ]}
         self.current_command = None
 
