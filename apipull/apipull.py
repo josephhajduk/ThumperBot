@@ -26,16 +26,18 @@ def get_key_details(key_id, verification_code):
 
 @asyncio.coroutine
 def run_key(bot,apikey):
+
+    apikey_user = apikey.user
+    key_id = apikey.key_id
+    code = apikey.verification_code
+    mainname = "NOMAIN"
+    if apikey_user.main_character is not None:
+        mainname= apikey_user.main_character.name
+    invalid = False
+
     try:
         eveapi.set_user_agent("eveapi.py/1.3")
         api = eveapi.EVEAPIConnection()
-        key_id = apikey.key_id
-        code = apikey.verification_code
-        apikey_user = apikey.user
-        mainname = "NOMAIN"
-        if apikey_user.main_character is not None:
-            mainname= apikey_user.main_character.name
-        invalid = False
 
         auth = api.auth(keyID=key_id, vCode=code)
 
