@@ -72,36 +72,37 @@ def run_key(bot,apikey):
 
                 print(character.name)
 
-                #what happens when char changes corp or alliance?
+                #what happens when char changes corp or alliance OR LOCATION?!?!?!?!?
+
+
+                dbchar, created = Character.get_or_create(
+                    user=apikey_user,
+                    name=character.name,
+                    eve_id=character.characterID,
+                    api_key=apikey)
+
 
                 location = ""
                 if hasattr(charInfo,"lastKnownLocation"):
                     location = charInfo.lastKnownLocation
 
                 if hasattr(charInfo, "alliance"):
-                    dbchar, created = Character.get_or_create(
-                        user=apikey_user,
-                        name=character.name,
-                        eve_id=character.characterID,
-                        corporation_name=charInfo.corporation,
-                        corporation_id=charInfo.corporationID,
-                        alliance_name=charInfo.alliance,
-                        alliance_id=charInfo.allianceID,
-                        shiptype_name=charInfo.shipTypeName,
-                        shiptype_id=charInfo.shipTypeID,
-                        location=location,
-                        api_key=apikey)
+                    dbchar.corporation_name=charInfo.corporation
+                    dbchar.corporation_id=charInfo.corporationID
+                    dbchar.alliance_name=charInfo.alliance
+                    dbchar.alliance_id=charInfo.allianceID
+                    dbchar.shiptype_name=charInfo.shipTypeName
+                    dbchar.shiptype_id=charInfo.shipTypeID
+                    dbchar.location=location
                 else:
-                    dbchar, created = Character.get_or_create(
-                        user=apikey_user,
-                        name=character.name,
-                        eve_id=character.characterID,
-                        corporation_name=charInfo.corporation,
-                        corporation_id=charInfo.corporationID,
-                        shiptype_name=charInfo.shipTypeName,
-                        shiptype_id=charInfo.shipTypeID,
-                        location=location,
-                        api_key=apikey)
+                    if hasattr(charInfo, "alliance"):
+                        dbchar.corporation_name=charInfo.corporation
+                        dbchar.corporation_id=charInfo.corporationID
+                        dbchar.shiptype_name=charInfo.shipTypeName
+                        dbchar.shiptype_id=charInfo.shipTypeID
+                        dbchar.location=location
+
+                dbchar.save()
 
                 charstring += "  " + character.name + "\n"
     except:
