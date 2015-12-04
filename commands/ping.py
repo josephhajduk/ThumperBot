@@ -23,9 +23,9 @@ class Ping(BotCommand):
         if len(Group.select()) > 0:
             groups = "Please respond with the name of the group you would like to ping\n\n"
             options = []
-            for group in Group.select():
-                groups += "  " +group.group_name + "\n"
-                options.append(group.group_name)
+            for group_mem in GroupMembership.select().where(GroupMembership.user == chat_handler.user):
+                groups += "  " +group_mem.group.group_name + "\n"
+                options.append(group_mem.group.group_name)
 
             self.current_handler = self.handle_group
             yield from chat_handler.sender.sendMessage(groups, reply_markup={'keyboard': [options]})
@@ -36,10 +36,17 @@ class Ping(BotCommand):
     def handle_group(self, msg, chat_handler):
         if (yield from assert_text(msg,chat_handler)):
             group_name = msg["text"]
-            if len(Group.select().where(Group.group_name==group_name)) > 0:
+            if len(Group.select().where(Group.group_name==group_name)) > 0 :
                 self._group = Group.select().where(Group.group_name == group_name).get()
-                self.current_handler = self.handle_message
-                yield from chat_handler.sender.sendMessage(_s["msg_pingmessageq"],reply_markup={'hide_keyboard': True})
+
+                if chat_handler.user.auth_level > 2:
+                    self.current_handler = self.handle_message
+                    yield from chat_handler.sender.sendMessage(_s["msg_pingmessageq"],reply_markup={'hide_keyboard': True})
+                elif len(GroupMembership.select().where(GroupMembership.group == self._group, GroupMembership.user == chat_handler.user)) > 0:
+                    self.current_handler = self.handle_message
+                    yield from chat_handler.sender.sendMessage(_s["msg_pingmessageq"],reply_markup={'hide_keyboard': True})
+                else:
+                    yield from chat_handler.sender.sendMessage(_s["msg_notagroup"])
             else:
                 yield from chat_handler.sender.sendMessage(_s["msg_notagroup"])
 
@@ -53,7 +60,7 @@ class Ping(BotCommand):
 
         for group_membership in GroupMembership.select().where(GroupMembership.group == self._group):
             try:
-                if not Mute.select().where(Mute.group == self._group and Mute.user==group_membership.user and Mute.until > datetime.datetime.now()):
+                if not Mute.select().where(Mute.group == self._group, Mute.user==group_membership.user, Mute.until > datetime.datetime.now()):
                     telegram_id = group_membership.user.telegram_id
                     main_character_name = chat_handler.user.main_character.name
                     group_name = self._group.group_name

@@ -35,7 +35,7 @@ class MuteGroup(BotCommand):
 
             if len(Group.select().where(Group.group_name == group_name)) > 0:
                 self._group = Group.select().where(Group.group_name == group_name).get()
-                if len(Mute.select().where(Mute.group == self._group and Mute.user == chat_handler.user)) == 0:
+                if len(Mute.select().where(Mute.group == self._group, Mute.user == chat_handler.user)) == 0:
 
                     show_keyboard = {'keyboard': [['60','1440'],['2160','10080']]}
                     self.current_handler = self.handle_time

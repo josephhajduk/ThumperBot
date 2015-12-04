@@ -37,8 +37,10 @@ class SetMain(BotCommand):
     def handle_character(self, msg, chat_handler):
         if (yield from assert_text(msg, chat_handler)):
             character_name = msg["text"]
-            if len(Character.select().where(Character.user == chat_handler.user and Character.name == character_name)) > 0:
-                char = Character.select().where(Character.user == chat_handler.user and Character.name == character_name).get()
+            if len(Character.select().where(Character.user == chat_handler.user,
+                                            Character.name == character_name)) > 0:
+                char = Character.select().where(Character.user == chat_handler.user,
+                                                Character.name == character_name).get()
                 chat_handler.user.main_character = char
                 chat_handler.user.save()
                 self.finished()

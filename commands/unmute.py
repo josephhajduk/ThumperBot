@@ -15,11 +15,11 @@ class UnMute(BotCommand):
 
     @asyncio.coroutine
     def initial_handler(self, msg, chat_handler):
-        if len(Mute.select().where(Mute.user == chat_handler.user and Mute.until > datetime.datetime.now())) > 0:
+        if len(Mute.select().where(Mute.user == chat_handler.user, Mute.until > datetime.datetime.now())) > 0:
             groups = "Please respond with the name of the group you would like to mute\n\n"
             groups += "Currently you are muting the following groups:\n"
             options = []
-            for group_mem in Mute.select().where(Mute.user == chat_handler.user and Mute.until > datetime.datetime.now()):
+            for group_mem in Mute.select().where(Mute.user == chat_handler.user, Mute.until > datetime.datetime.now()):
                 groups += "  " + group_mem.group.group_name + "\n"
                 options.append(group_mem.group.group_name)
 
@@ -37,7 +37,7 @@ class UnMute(BotCommand):
             if len(Group.select().where(Group.group_name == group_name)) > 0:
 
                 self._group = Group.select().where(Group.group_name == group_name).get()
-                mute_instance = Mute.select().where(Mute.user == chat_handler.user and Mute.group ==self._group).get()
+                mute_instance = Mute.select().where(Mute.user == chat_handler.user, Mute.group ==self._group).get()
                 mute_instance.delete_instance()
 
                 self.finished()
