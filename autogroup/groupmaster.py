@@ -57,10 +57,9 @@ async def auto_group_char(user, character):
                     user=user,
                     group=linked_group
                 )
-                logging.info("Added "+player_name + " to " + linked_group.group_name)
+                logging.warning("Added "+player_name + " to " + linked_group.group_name)
 
     except:
-        print("1")
         traceback.print_exc()
 
 async def auto_group(user):
@@ -74,11 +73,11 @@ async def auto_group(user):
         for group_membership in user.group_memberships.filter(GroupMembership.linked == True):
             group_membership.delete_instance()
             group_membership.save()
-            logging.info("Purged "+player_name + " from " + group_membership.group.group_name)
+            logging.warning("Purged "+player_name + " from " + group_membership.group.group_name)
 
         # add back groups
         for character in characters:
             await auto_group_char(user, character)
     except:
-        logging.info("Failed to auto_group: "+player_name)
+        logging.warning("Failed to auto_group: "+player_name)
         traceback.print_exc()

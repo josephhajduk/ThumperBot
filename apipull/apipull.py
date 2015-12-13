@@ -121,7 +121,7 @@ def run_key(bot,apikey):
     try:
 
         if invalid:
-            logging.info("Purging characters from key: " + str(key_id))
+            logging.warning("Purging characters from key: " + str(key_id))
             for delcharacter in Character.select().where(Character.api_key == apikey):
                 delcharacter.delete_instance(recursive=True)
 
