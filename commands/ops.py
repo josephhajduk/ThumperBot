@@ -24,6 +24,7 @@ class Ops(BotCommand):
                 try:
                     r = yield from aiohttp.get('https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ')
                     self._ops = (yield from r.json())["ops"]
+                    self.finished()
                     yield from self.send_template(chat_handler, "OPS")
                 except:
                     traceback.print_exc()
