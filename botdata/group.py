@@ -9,7 +9,7 @@ class Group(BaseModel):
     legacy_name = TextField(index=True, default="")
     created_date = DateTimeField(default=datetime.datetime.now)
     description = TextField(default="")
-    auto_approval = BooleanField(default=True)
+    auto_approval = BooleanField(default=False)
 
 GroupProxy.initialize(Group)
 

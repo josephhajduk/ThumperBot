@@ -3,16 +3,14 @@ import datetime
 import traceback
 import logging
 import time
-from botdata import Group, User, GroupLink, GroupMembership, GroupApproval, Character
+from botdata import Group, User, GroupLink, GroupMembership, GroupApproval, Character, get_config_item
 
 async def group_loop(bot, loop):
     while True:
         logging.info("Starting autogroup loop")
-        tasks = []
-        for u in User.select():
-            tasks.append(auto_group(u))
+        tasks = [auto_group(u) for u in User.select()]
         await asyncio.gather(*tasks)
-        await asyncio.sleep(60 * 5)  # run check every 5 minutes
+        await asyncio.sleep(get_config_item("AUTOGROUP_INTERVAL", 60 * 5))  # run check every 5 minutes
 
 async def auto_group_char(user, character):
     try:

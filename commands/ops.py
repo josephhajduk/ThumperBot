@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import traceback
 from commands.botcommand import BotCommand
-from botdata import Group, GroupMembership
+from botdata import Group, GroupMembership, get_config_item
 
 
 class Ops(BotCommand):
@@ -18,11 +18,11 @@ class Ops(BotCommand):
 
     @asyncio.coroutine
     def initial_handler(self, msg, chat_handler):
-        if len(Group.select().where(Group.group_name == "ncdot")) > 0:
-            ncdotgroup = Group.select().where(Group.group_name == "ncdot").get()
+        if len(Group.select().where(Group.group_name == get_config_item("OPS_GROUP", "ncdot"))) > 0:
+            ncdotgroup = Group.select().where(Group.group_name == get_config_item("OPS_GROUP", "ncdot")).get()
             if len(GroupMembership.select().where(GroupMembership.group == ncdotgroup, GroupMembership.user == chat_handler.user))> 0:
                 try:
-                    r = yield from aiohttp.get('https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ')
+                    r = yield from aiohttp.get(get_config_item("OPS_JSON_URL", 'https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ'))
                     self._ops = (yield from r.json())["ops"]
                     self.finished()
                     yield from self.send_template(chat_handler, "OPS")

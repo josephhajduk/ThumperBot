@@ -41,7 +41,7 @@ def run_key(bot,apikey):
 
         auth = api.auth(keyID=key_id, vCode=code)
 
-        minimal_mask = 16777216
+        minimal_mask = get_config_item("API_MINIMUM_MASK", 16777216)
         result1 = auth.account.APIKeyInfo().key
 
         if not result1.accessMask & minimal_mask:
@@ -133,7 +133,6 @@ def run_key(bot,apikey):
                 yield from bot.sendMessage(apikey_user.telegram_id, _s["msg_keysrun"])
 
     except:
-        print("FAIL1")
         traceback.print_exc()
     pass
 
@@ -152,13 +151,11 @@ async def check_api_loop(bot, loop):
                     yield l[i:i+n]
 
             #limit to 15 per second
-
             for chunk in chunks(tasks, 15):
                 await asyncio.gather(*chunk)
                 await asyncio.sleep(1)
 
-            await asyncio.sleep(60 * 3)  # run apis every 3 minutes
+            await asyncio.sleep(get_config_item("API_LOOP", 60*3))  # run apis every 3 minutes
         except:
-            print("FAIL2")
             traceback.print_exc()
-            await asyncio.sleep(60 * 3)  # run apis every 3 minutes
+            await asyncio.sleep(get_config_item("API_LOOP", 60*3))  # run apis every 3 minutes

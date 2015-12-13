@@ -2,7 +2,7 @@ import asyncio
 import re
 import traceback
 from commands.botcommand import BotCommand, assert_text, _s
-from botdata import ApiKey
+from botdata import ApiKey, get_config_item
 from apipull.apipull import get_key_details
 
 
@@ -50,7 +50,7 @@ class RegisterApi(BotCommand):
 
                 if key_details is not None:
                     if key_details["type"] == "Account":
-                        if key_details["accessMask"] & 16777216:
+                        if key_details["accessMask"] & get_config_item("API_MINIMUM_MASK", 16777216):
                             if key_details["expires"] == "":
 
                                 api_key, created = ApiKey.create_or_get(

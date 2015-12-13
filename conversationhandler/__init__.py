@@ -4,7 +4,7 @@ import datetime
 import logging
 from conversationhandler import strings
 from commands import *
-from botdata import User
+from botdata import User, get_config_item
 
 _s = strings.strings
 
@@ -54,7 +54,7 @@ class ConversationHandler(telepot.helper.ChatHandler):
             for i in range(0, len(l), n):
                 yield l[i:i+n]
 
-        for chunk in chunks(tasks,20):
+        for chunk in chunks(tasks, get_config_item("THROTTLE_CHUNK_SIZE", 20)):
             yield from asyncio.gather(*chunk)
             yield from asyncio.sleep(1)
 

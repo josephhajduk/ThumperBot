@@ -1,6 +1,6 @@
 
 from aiohttp import web
-from botdata import GroupMembership, Character, Group
+from botdata import GroupMembership, Character, Group, get_config_item
 import telepot
 import logging
 import asyncio
@@ -33,13 +33,13 @@ async def legacy_parse(request):
         traceback.print_exc()
         print(raw)
 
-    r = re.compile("\[BROADCAST/([\w\s;]*)]\s(\w*)\:\s(.*)")
+    r = re.compile(get_config_item("IRSSI_PING_FORMAT", "\[BROADCAST/([\w\s;]*)]\s(\w*)\:\s(.*)"))
 
     msg = ""
 
     for pingrow in parsed:
-        ping_time = pingrow["time"]
-        sender = pingrow["sender"]
+        #ping_time = pingrow["time"]
+        #sender = pingrow["sender"]
         message = pingrow["message"]
 
         m = r.search(message)
@@ -62,7 +62,7 @@ async def legacy_parse(request):
 
             start_time = time.time()
 
-            for chunk in chunks(tasks, 20):
+            for chunk in chunks(tasks,  get_config_item("THROTTLE_CHUNK_SIZE", 20)):
                 await asyncio.gather(*chunk)
                 await asyncio.sleep(1)
 
@@ -95,7 +95,7 @@ async def legacy_pinggroup(request):
 
     start_time = time.time()
 
-    for chunk in chunks(tasks, 20):
+    for chunk in chunks(tasks,  get_config_item("THROTTLE_CHUNK_SIZE", 20)):
         await asyncio.gather(*chunk)
         await asyncio.sleep(1)
 
