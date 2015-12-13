@@ -7,8 +7,8 @@ from botdata.group import *
 
 #db.drop_table(GroupMembership)
 #db.create_table(GroupMembership)
-db.drop_tables([Group, GroupMembership])
-db.create_tables([Group, GroupMembership, GroupApproval,GroupMembership,GroupLink])
+#db.drop_tables([Group, GroupMembership])
+#db.create_tables([Group, GroupMembership, GroupApproval,GroupMembership,GroupLink])
 
 #db.create_tables([Mute])
 #db.create_tables([User,ApiKey,Character])
