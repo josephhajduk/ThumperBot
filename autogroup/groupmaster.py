@@ -35,9 +35,15 @@ async def auto_group_char(user, character):
 
             # make sure this character satisfies every link for this group
             add = True
+
+            link_fields = {link.character_field_name: False for link in GroupLink.select().where(GroupLink.group == linked_group)}
+
             for link in GroupLink.select().where(GroupLink.group == linked_group):
-                if getattr(character, link.character_field_name) != link.field_value:
-                    add = False
+                if getattr(character, link.character_field_name) == link.field_value:
+                    link_fields[link.character_field_name] = True
+
+            for lf in link_fields:
+                add = add and link_fields[lf]
 
             # see if this character has been approved
             approved = linked_group.auto_approval
