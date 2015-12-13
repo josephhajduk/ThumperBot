@@ -9,7 +9,7 @@ from conversationhandler.strings import strings
 LOG_FILENAME = os.path.dirname(os.path.realpath(__file__))+'/../log.txt'
 
 logging.basicConfig(filename=LOG_FILENAME,
-                    level=logging.DEBUG,
+                    level=logging.WARNING,
                     )
 
 _s = strings
