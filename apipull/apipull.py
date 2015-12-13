@@ -6,8 +6,11 @@ import traceback
 from botdata import *
 from conversationhandler.strings import strings
 from apipull import eveapi
+from apipull.eveapi import AuthenticationError
 
 _s = strings
+
+# TODO:  switch to async def semantics
 
 @asyncio.coroutine
 def get_key_details(key_id, verification_code):
@@ -105,13 +108,24 @@ def run_key(bot,apikey):
                 dbchar.save()
 
                 charstring += "  " + character.name + "\n"
-    except Exception as ex:
+    except IntegrityError:
+        invalid = True
+
+        logging.error("API DBERROR: BAD KEY: " + str(
+            key_id) + " : " + code + " for " + mainname)
+        traceback.print_exc()
+    except AuthenticationError as ex:
         if ex.code == 403:
             invalid = True
 
+        logging.error("API DELETED: BAD KEY: " + str(
+            key_id) + " : " + code + " for " + mainname)
+        traceback.print_exc()
+    except:
         logging.error("API ERROR: BAD KEY: " + str(
             key_id) + " : " + code + " for " + mainname)
         traceback.print_exc()
+
 
     apikey.last_queried = datetime.datetime.now()
     apikey.invalid = invalid
