@@ -16,8 +16,6 @@ async def group_loop(bot, loop):
 
 async def auto_group_char(user, character):
     try:
-        await asyncio.sleep(1)  # TODO: find out why i need this lol
-
         player_name = user.display_name()
 
         # find all group links for this character
@@ -62,6 +60,7 @@ async def auto_group_char(user, character):
 async def auto_group(user):
     try:
         player_name = user.display_name()
+        characters = list(user.characters)
 
         logging.info("Autogrouping "+player_name)
 
@@ -72,7 +71,7 @@ async def auto_group(user):
             logging.info("Purged "+player_name + " from " + group_membership.group.group_name)
 
         # add back groups
-        for character in user.characters:
+        for character in characters:
             await auto_group_char(user, character)
     except:
         logging.info("Failed to auto_group: "+player_name)
