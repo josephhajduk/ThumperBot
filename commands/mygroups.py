@@ -10,7 +10,7 @@ class MyGroups(BotCommand):
 
     key = "/mygroups"
     description = "List all of your groups"
-    auth_level = 1
+    auth_level = 0
 
     @asyncio.coroutine
     def initial_handler(self, msg, chat_handler):
