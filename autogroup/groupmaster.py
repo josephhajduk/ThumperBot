@@ -1,79 +1,79 @@
 import asyncio
 import datetime
+import traceback
 import logging
-from botdata import *
+import time
+from botdata import Group, User, GroupLink, GroupMembership, GroupApproval, Character
 
 async def group_loop(bot, loop):
     while True:
         logging.info("Starting autogroup loop")
-        for user in User.select():
-            await auto_group(user)
+        tasks = []
+        for u in User.select():
+            tasks.append(auto_group(u))
+        await asyncio.gather(*tasks)
         await asyncio.sleep(60 * 5)  # run check every 5 minutes
 
-@asyncio.coroutine
-def auto_group(user):
-    playername = "TELID:"+str(user.telegram_id)
-    if user.main_character != None:
-        playername = user.main_character.name
+async def auto_group_char(user, character):
+    try:
+        await asyncio.sleep(1)  # TODO: find out why i need this lol
 
-    logging.info("Autogrouping "+playername)
+        player_name = user.display_name()
 
-    #kill all linked groups
-    for group_membership in user.groups.filter(GroupMembership.linked == True):
-        group_membership.delete_instance()
-        group_membership.save()
-        logging.info("purged "+playername + " from " +group_membership.group.group_name)
-
-    #get corp links
-    corp_links = [list(set(
-        [link.group.group_name for link in GroupCorpLinks.select().where(GroupCorpLinks.corp == mycorp)]
-    )) for mycorp in [char.corporation_name for char in user.characters]]
-
-    flat_corp_links = list(set(sum(corp_links, [])))
-
-    #get alliance links
-    alliance_links = [list(set(
-        [link.group.group_name for link in GroupAllianceLinks.select().where(GroupAllianceLinks.alliance == myalliance)]
-    )) for myalliance in [char.alliance_name for char in user.characters]]
-
-    flat_alliance_links = list(set(sum(alliance_links, [])))
-
-    #get ship links
-    ship_links = [list(set(
-        [link.group.group_name for link in GroupShipTypeLinks.select().where(GroupShipTypeLinks.shiptype == myshiptype)]
-    )) for myshiptype in [char.shiptype_name for char in user.characters]]
-
-    flat_ship_links = list(set(sum(ship_links, [])))
-
-    linked_groups = flat_corp_links+flat_alliance_links+flat_ship_links
-
-    logging.info(playername+"'s linked groups are:"+str(linked_groups))
-
-    for group_name in linked_groups:
-        group_query = Group.select().where(Group.group_name==group_name)
-
-        #make sure if this group has any links, that the player is in all level of links
-
-        if len(group_query) > 0:
-            group = group_query.get()
-
-            add = True
-
-            #double check we have at least one of each link class
-            if len(GroupCorpLinks.select().where(GroupCorpLinks.group == group)) > 0:
-                if group_name not in flat_corp_links:
-                    add = False
-
-            if len(GroupAllianceLinks.select().where(GroupAllianceLinks.group == group)) > 0:
-                if group_name not in flat_alliance_links:
-                    add = False
-
-            if len(GroupShipTypeLinks.select().where(GroupShipTypeLinks.group == group)) > 0:
-                if group_name not in flat_ship_links:
-                    add = False
-
-            if add:
-                GroupMembership.get_or_create(
-                    user=user,
-                    group=group
+        # find all group links for this character
+        char_links = [
+            set(link.group.group_name for link in GroupLink.select().where(
+                GroupLink.character_field_name == field_name,
+                GroupLink.field_value == getattr(character, field_name))
                 )
+            for field_name in Character._meta.fields.keys()
+            ]
+
+        flat_links = set.union(*char_links)
+
+        for linked_group_name in flat_links:
+
+            linked_group = Group.select().where(Group.group_name == linked_group_name).get()
+
+            # make sure this character satisfies every link for this group
+            add = True
+            for link in GroupLink.select().where(GroupLink.group == linked_group):
+                if getattr(character, link.character_field_name) != link.field_value:
+                    add = False
+
+            # see if this character has been approved
+            approved = linked_group.auto_approval
+            if len(GroupApproval.select().where(
+                            GroupApproval.user == user,
+                            GroupApproval.group == linked_group)) > 0:
+                approved = True
+
+            if add and approved:
+                GroupMembership.create_or_get(
+                    user=user,
+                    group=linked_group
+                )
+                logging.info("Added "+player_name + " to " + linked_group.group_name)
+
+    except:
+        print("1")
+        traceback.print_exc()
+
+async def auto_group(user):
+    try:
+        player_name = user.display_name()
+
+        logging.info("Autogrouping "+player_name)
+
+        # kill all linked groups
+        for group_membership in user.group_memberships.filter(GroupMembership.linked == True):
+            group_membership.delete_instance()
+            group_membership.save()
+            logging.info("Purged "+player_name + " from " + group_membership.group.group_name)
+
+        # add back groups
+        for character in user.characters:
+            await auto_group_char(user, character)
+    except:
+        logging.info("Failed to auto_group: "+player_name)
+        traceback.print_exc()

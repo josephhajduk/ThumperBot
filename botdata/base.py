@@ -6,6 +6,6 @@ db = SqliteDatabase(os.path.dirname(os.path.realpath(__file__))+'/bot_data.db')
 
 class BaseModel(Model):
     class Meta:
-        database = db # This model uses the "people.db" database.
+        database = db
 
 BaseModel = BaseModel

@@ -3,32 +3,38 @@ import datetime
 from botdata.base import BaseModel
 from botdata.user import User, GroupProxy
 
+
 class Group(BaseModel):
     group_name = TextField(unique=True, index=True)
     legacy_name = TextField(index=True, default="")
     created_date = DateTimeField(default=datetime.datetime.now)
     description = TextField(default="")
+    auto_approval = BooleanField(default=True)
 
 GroupProxy.initialize(Group)
 
-class GroupCorpLinks(BaseModel):
-    group = ForeignKeyField(Group, related_name='corp_links')
-    corp = TextField()
+
+class GroupLink(BaseModel):
+    group = ForeignKeyField(Group, related_name='group_links')
+    character_field_name = TextField(default="")
+    field_value = TextField(default="")
 
 
-class GroupAllianceLinks(BaseModel):
-    group = ForeignKeyField(Group, related_name='alliance_links')
-    alliance = TextField()
+class GroupApproval(BaseModel):
+    group = ForeignKeyField(Group, related_name='approvals',index=True)
+    user = ForeignKeyField(User, related_name='group_approvals')
+    approved = BooleanField(default=False)
 
-
-class GroupShipTypeLinks(BaseModel):
-    group = ForeignKeyField(Group, related_name='shiptype_links')
-    shiptype = TextField()
+    class Meta:
+        indexes = (
+            # Specify a unique multi-column index on from/to-user.
+            (('group', 'user'), True),
+        )
 
 
 class GroupMembership(BaseModel):
-    group = ForeignKeyField(Group, related_name='members',index=True)
-    user = ForeignKeyField(User, related_name='groups')
+    group = ForeignKeyField(Group, related_name='members', index=True)
+    user = ForeignKeyField(User, related_name='group_memberships')
     linked = BooleanField(default=True)
 
     class Meta:

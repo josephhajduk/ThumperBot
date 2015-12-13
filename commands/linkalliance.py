@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from commands.botcommand import BotCommand, assert_text, _s
-from botdata import Group, Character, GroupAllianceLinks
+from botdata import Group, Character, GroupLink
 from collections import Counter
 
 
@@ -51,6 +51,10 @@ class LinkAlliance(BotCommand):
         if (yield from assert_text(msg,chat_handler)):
             alliance_name = msg["text"]
 
-            GroupAllianceLinks.create_or_get(group=self._group, alliance=alliance_name)
+            GroupLink.create_or_get(
+                group=self._group,
+                character_field_name="alliance_name",
+                field_value=alliance_name
+            )
             self.finished()
             yield from chat_handler.sender.sendMessage(_s["msg_linkadded"],reply_markup={'hide_keyboard': True})

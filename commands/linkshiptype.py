@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from commands.botcommand import BotCommand, assert_text, _s
-from botdata import Group, Character, GroupShipTypeLinks
+from botdata import Group, Character, GroupLink
 from collections import Counter
 
 
@@ -51,6 +51,10 @@ class LinkShipType(BotCommand):
         if (yield from assert_text(msg,chat_handler)):
             shiptype = msg["text"]
 
-            GroupShipTypeLinks.create_or_get(group=self._group, shiptype=shiptype)
+            GroupLink.create_or_get(
+                group=self._group,
+                character_field_name="shiptype_name",
+                field_value=shiptype
+            )
             self.finished()
             yield from chat_handler.sender.sendMessage(_s["msg_linkadded"],reply_markup={'hide_keyboard': True})

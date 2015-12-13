@@ -44,6 +44,7 @@ class ConversationHandler(telepot.helper.ChatHandler):
             UnElevate,
             TakeAdmin,
             ForwardMessage,
+            Ops,
         ]}
         self.current_command = None
 

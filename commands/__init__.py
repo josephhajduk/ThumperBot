@@ -34,3 +34,4 @@ from commands.unlinkcorp import *
 from commands.unlinkshiptype import *
 from commands.unmute import *
 from commands.mygroups import *
+from commands.ops import *

@@ -105,14 +105,13 @@ def run_key(bot,apikey):
                 dbchar.save()
 
                 charstring += "  " + character.name + "\n"
-    except:
-        #invalid = True
-        #TODO: DETECT DELETED KEY
+    except Exception as ex:
+        if ex.code == 403:
+            invalid = True
+
         logging.error("API ERROR: BAD KEY: " + str(
             key_id) + " : " + code + " for " + mainname)
         traceback.print_exc()
-        print("API ERROR: BAD KEY: " + str(
-            key_id) + " : " + code + " for " + mainname)
 
 
     apikey.last_queried = datetime.datetime.now()
