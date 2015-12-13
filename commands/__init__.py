@@ -2,8 +2,6 @@ from commands.help import *
 from commands.registerapi import *
 from commands.setmain import *
 from commands.listchars import *
-from commands.silence import *
-from commands.unsilence import *
 from commands.mutegroup import *
 from commands.creategroup import *
 from commands.altsof import *

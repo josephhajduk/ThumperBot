@@ -20,8 +20,6 @@ class ConversationHandler(telepot.helper.ChatHandler):
             RegisterApi,
             SetMain,
             ListChars,
-            #Silence,
-            #Unsilence,
             MuteGroup,
             UnMute,
             MyGroups,
@@ -48,66 +46,74 @@ class ConversationHandler(telepot.helper.ChatHandler):
         ]}
         self.current_command = None
 
-    @asyncio.coroutine
-    def throttle(self, tasks):
+    async def throttle(self, tasks):
         def chunks(l, n):
             for i in range(0, len(l), n):
                 yield l[i:i+n]
 
         for chunk in chunks(tasks, get_config_item("THROTTLE_CHUNK_SIZE", 20)):
-            yield from asyncio.gather(*chunk)
-            yield from asyncio.sleep(1)
+            await asyncio.gather(*chunk)
+            await asyncio.sleep(1)
 
-    @asyncio.coroutine
-    def open(self, initial_msg, seed):
+    async def open(self, initial_msg, seed):
         if initial_msg["from"]:
             self.telegram_id = initial_msg["from"]["id"]
             self.user, created = User.create_or_get(telegram_id=self.telegram_id)
 
             if self.user.main_character is None:
-                yield from self.sender.sendMessage(_s["msg_welcome"])
+                await self.sender.sendMessage(_s["msg_welcome"])
         else:
-            yield from self.sender.sendMessage(_s["msg_nofrom"])
+            await self.sender.sendMessage(_s["msg_nofrom"])
 
-    @asyncio.coroutine
-    def on_message(self, msg):
-        print(msg)
+    async def on_message(self, msg):
+        logging.info("received message:"+str(msg))
 
         #update user every message
-        if msg["from"]:
-            self.telegram_id = msg["from"]["id"]
-            self.user, created = User.create_or_get(telegram_id=self.telegram_id)
 
         content_type, chat_type, chat_id = telepot.glance2(msg)
 
-        logging.info("received message:"+str(msg))
+        if "from" in msg:
+            from_name = ""
+            if "first_name" in msg["from"]:
+                from_name += msg["from"]["first_name"]+" "
+            if "last_name" in msg["from"]:
+                from_name += msg["from"]["last_name"]+" "
+            if "username" in msg["from"]:
+                from_name += "| "+msg["from"]["username"]+" "
+            strmsg = "'"+content_type+"': "+str(msg[content_type])
+            print("[{0}] [TEL: {1} | {2}]: {3}".format(
+                datetime.datetime.fromtimestamp(int(msg["date"])).strftime('%Y-%m-%d %H:%M:%S'),
+                msg["from"]["id"],
+                from_name,
+                strmsg))
+
+            self.telegram_id = msg["from"]["id"]
+            self.user, created = User.create_or_get(telegram_id=self.telegram_id)
 
         if self.current_command is not None:
             if self.current_command.isFinished:
                 self.current_command = None
-                yield from self.on_message(msg)
-            else:
-                if content_type == 'text':
-                    if msg["text"] == "/cancel":
-                        self.current_command.cancel()
-                        return (yield from self.sender.sendMessage(_s["msg_cancelled_command"],
-                                                                   reply_markup={'hide_keyboard': True}))
-                yield from self.current_command.msg(msg, self)
+
+        if self.current_command is not None:
+            if content_type == 'text':
+                if msg["text"] == "/cancel":
+                    self.current_command.cancel()
+                    return (await self.sender.sendMessage(_s["msg_cancelled_command"],
+                                                               reply_markup={'hide_keyboard': True}))
+            await self.current_command.msg(msg, self)
         else:
             if content_type == 'text':
                 command_arguments = shlex.split(msg['text'])
                 if command_arguments[0] in self.commands:
                     if self.commands[command_arguments[0]].auth_level <= self.user.auth_level:
                         self.current_command = self.commands[command_arguments[0]](self.telegram_id, self._bot)
-                        yield from self.current_command.msg(msg, self)
+                        await self.current_command.msg(msg, self)
                 else:
-                    yield from self.sender.sendMessage(_s["msg_notvalid"])
+                    await self.sender.sendMessage(_s["msg_notvalid"])
             else:
-                yield from self.sender.sendMessage(_s["msg_expecttext"])
+                await self.sender.sendMessage(_s["msg_expecttext"])
 
-
-    @asyncio.coroutine
-    def on_close(self, exception):
+    async def on_close(self, exception):
         if isinstance(exception, telepot.helper.WaitTooLong):
             if self.current_command is not None:
                 self.current_command.cancel()
