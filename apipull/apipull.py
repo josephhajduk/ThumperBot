@@ -15,7 +15,7 @@ def get_key_details(key_id, verification_code):
         eveapi.set_user_agent(get_config_item("EVEAPI_USERAGENT", "eveapi.py/1.3"))
         api = eveapi.EVEAPIConnection()
         auth = api.auth(keyID=key_id, vCode=verification_code)
-        api_key_info = auth.account.APIKeyInfo().key
+        api_key_info = (yield from auth.account.APIKeyInfo()).key
         return {
             "accessMask": api_key_info.accessMask,
             "expires": api_key_info.expires,
@@ -42,7 +42,7 @@ def run_key(bot,apikey):
         auth = api.auth(keyID=key_id, vCode=code)
 
         minimal_mask = get_config_item("API_MINIMUM_MASK", 16777216)
-        result1 = auth.account.APIKeyInfo().key
+        result1 = (yield from auth.account.APIKeyInfo()).key
 
         if not result1.accessMask & minimal_mask:
             logging.error("INVALID MASK KEY: " + str(
@@ -62,13 +62,13 @@ def run_key(bot,apikey):
             invalid = True
 
         if not invalid:
-            result2 = auth.account.Characters()
+            result2 = yield from auth.account.Characters()
 
             charstring = ""
 
             for character in result2.characters:
 
-                charInfo = auth.eve.CharacterInfo(characterID=character.characterID)
+                charInfo = yield from auth.eve.CharacterInfo(characterID=character.characterID)
 
                 print(character.name)
 
@@ -138,7 +138,8 @@ async def check_api_loop(bot, loop):
     while True:
         try:
             tasks = [run_key(bot, apikey) for apikey in ApiKey.select().where(
-                ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=8)
+                ApiKey.last_queried < datetime.datetime.now() - datetime.timedelta(hours=get_config_item("API_REFRESH_HOURS", 8)),
+                ApiKey.invalid == False
             )]
 
             print("Running "+str(len(tasks))+" api keys...")
@@ -147,8 +148,8 @@ async def check_api_loop(bot, loop):
                 for i in range(0, len(l), n):
                     yield l[i:i+n]
 
-            #limit to 15 per second
-            for chunk in chunks(tasks, get_config_item("EVEAPI_TROTTLE_RATE", 15)):
+            #limit to 10 per second
+            for chunk in chunks(tasks, get_config_item("EVEAPI_TROTTLE_RATE", 10)):
                 await asyncio.gather(*chunk)
                 await asyncio.sleep(1)
 

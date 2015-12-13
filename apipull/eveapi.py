@@ -163,6 +163,7 @@ from builtins import zip
 from builtins import range
 from builtins import object
 
+import aiohttp
 import http.client
 from urllib.parse import urlparse, urlencode
 # from urllib.request import urlopen, Request
@@ -388,7 +389,7 @@ class _RootContext(_Context):
     def __bool__(self):
         return True
 
-    def __call__(self, path, **kw):
+    async def __call__(self, path, **kw):
         # convert list type arguments to something the API likes
         for k, v in kw.items():
             if isinstance(v, _listtypes):
@@ -410,23 +411,16 @@ class _RootContext(_Context):
 
             if self._proxy is None:
                 req = path
-                if self._scheme == "https":
-                    conn = http.client.HTTPSConnection(self._host)
-                else:
-                    conn = http.client.HTTPConnection(self._host)
             else:
                 req = self._scheme+'://'+self._host+path
-                if self._proxySSL:
-                    conn = http.client.HTTPSConnection(*self._proxy)
-                else:
-                    conn = http.client.HTTPConnection(*self._proxy)
+
+            req = self._scheme+'://'+self._host+path
 
             if kw:
-                conn.request("POST", req, urlencode(kw), {"Content-type": "application/x-www-form-urlencoded", "User-Agent": _useragent or _default_useragent})
+                response = await aiohttp.post(req, params=kw, data={"Content-type": "application/x-www-form-urlencoded", "User-Agent": _useragent or _default_useragent})
             else:
-                conn.request("GET", req, "", {"User-Agent": _useragent or _default_useragent})
+                response = await aiohttp.get(req, data={"User-Agent": _useragent or _default_useragent})
 
-            response = conn.getresponse()
             if response.status != 200:
                 if response.status == http.client.NOT_FOUND:
                     raise AttributeError("'%s' not available on API server (404 Not Found)" % path)
@@ -447,15 +441,15 @@ class _RootContext(_Context):
         if retrieve_fallback:
             # implementor is handling fallbacks...
             try:
-                return _ParseXML(response, True, store and (lambda obj: cache.store(self._host, path, kw, response, obj)))
+                return _ParseXML((await response.text()), False, store and (lambda obj: cache.store(self._host, path, kw, response, obj)))
             except Error as e:
                 response = retrieve_fallback(self._host, path, kw, reason=e)
                 if response is not None:
-                    return response
+                    return (await response.text())
                 raise
         else:
             # implementor is not handling fallbacks...
-            return _ParseXML(response, True, store and (lambda obj: cache.store(self._host, path, kw, response, obj)))
+            return _ParseXML((await response.text()), False, store and (lambda obj: cache.store(self._host, path, kw, response, obj)))
 
 #-----------------------------------------------------------------------------
 # XML Parser

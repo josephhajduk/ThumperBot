@@ -2,7 +2,7 @@
 {% for op in command._ops %}
 *{{ op.title }}*
 *FC*: _{{ op.opFc }}_
-*DOCTRINE*: _{{ op.shipDoctrines }}_
-*WHEN*: _in {{ op.opFormattedDate }}_
+{% if op.shipDoctrines != "" %}*DOCTRINE*: _{{ op.shipDoctrines }}_
+{%endif %}*WHEN*: _in {{ op.opFormattedDate }}_
 {{ op.description }}
 {% endfor %}
