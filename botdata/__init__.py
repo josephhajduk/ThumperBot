@@ -5,7 +5,7 @@ from botdata.base import *
 from botdata.group import *
 from botdata.config import *
 
-db.create_table(ConfigItem)
+#db.create_table(ConfigItem)
 
 #db.drop_table(GroupMembership)
 #db.create_table(GroupMembership)

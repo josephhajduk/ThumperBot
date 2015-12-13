@@ -12,7 +12,7 @@ _s = strings
 @asyncio.coroutine
 def get_key_details(key_id, verification_code):
     try:
-        eveapi.set_user_agent("eveapi.py/1.3")
+        eveapi.set_user_agent(get_config_item("EVEAPI_USERAGENT", "eveapi.py/1.3"))
         api = eveapi.EVEAPIConnection()
         auth = api.auth(keyID=key_id, vCode=verification_code)
         api_key_info = auth.account.APIKeyInfo().key
@@ -36,7 +36,7 @@ def run_key(bot,apikey):
     invalid = False
 
     try:
-        eveapi.set_user_agent("eveapi.py/1.3")
+        eveapi.set_user_agent(get_config_item("EVEAPI_USERAGENT", "eveapi.py/1.3"))
         api = eveapi.EVEAPIConnection()
 
         auth = api.auth(keyID=key_id, vCode=code)
@@ -113,13 +113,11 @@ def run_key(bot,apikey):
             key_id) + " : " + code + " for " + mainname)
         traceback.print_exc()
 
-
     apikey.last_queried = datetime.datetime.now()
     apikey.invalid = invalid
     apikey.save()
 
     try:
-
         if invalid:
             logging.warning("Purging characters from key: " + str(key_id))
             for delcharacter in Character.select().where(Character.api_key == apikey):
@@ -134,7 +132,6 @@ def run_key(bot,apikey):
 
     except:
         traceback.print_exc()
-    pass
 
 
 async def check_api_loop(bot, loop):
@@ -151,7 +148,7 @@ async def check_api_loop(bot, loop):
                     yield l[i:i+n]
 
             #limit to 15 per second
-            for chunk in chunks(tasks, 15):
+            for chunk in chunks(tasks, get_config_item("EVEAPI_TROTTLE_RATE", 15)):
                 await asyncio.gather(*chunk)
                 await asyncio.sleep(1)
 
