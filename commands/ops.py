@@ -16,23 +16,26 @@ class Ops(BotCommand):
     auth_level = 0
     template = BotCommand.load_template("ops")
 
-    @asyncio.coroutine
-    def initial_handler(self, msg, chat_handler):
+
+    async def initial_handler(self, msg, chat_handler):
         if len(Group.select().where(Group.group_name == get_config_item("OPS_GROUP", "ncdot"))) > 0:
             ncdotgroup = Group.select().where(Group.group_name == get_config_item("OPS_GROUP", "ncdot")).get()
             if len(GroupMembership.select().where(GroupMembership.group == ncdotgroup, GroupMembership.user == chat_handler.user))> 0:
                 try:
-                    r = yield from aiohttp.get(get_config_item("OPS_JSON_URL", 'https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ'))
-                    self._ops = (yield from r.json())["ops"]
+                    r = await aiohttp.get(get_config_item("OPS_JSON_URL", 'https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ'))
+                    self._ops = (await r.json())["ops"]
                     self.finished()
-                    yield from self.send_template(chat_handler, "OPS")
+                    if self._ops != []:
+                        await self.send_template(chat_handler, "OPS")
+                    else:
+                        await chat_handler.sender.sendMessage("No ops planned")
                 except:
                     traceback.print_exc()
                     self.finished()
-                    yield from chat_handler.sender.sendMessage("error getting !ops")
+                    await chat_handler.sender.sendMessage("error getting !ops")
             else:
                 self.finished()
-                yield from chat_handler.sender.sendMessage("you are not in ncdot group")
+                await chat_handler.sender.sendMessage("you are not in ncdot group")
         else:
             self.finished()
-            yield from chat_handler.sender.sendMessage("no ncdot group")
+            await chat_handler.sender.sendMessage("no ncdot group")
