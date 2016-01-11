@@ -11,8 +11,10 @@ import re
 import sys
 import traceback
 
+last_message = ""
 
 async def legacy_parse(request):
+    global last_message
     data = await request.post()
     raw = data["messages"]
 
@@ -47,30 +49,32 @@ async def legacy_parse(request):
         legacy_groups = m.groups()[0].split(";")
         legacy_sender = m.groups()[1]
         message = m.groups()[2]
-        for group in legacy_groups:
-            group_name = group.lower().strip()
-            tasks = []
-            success = 0
-            # look up the group,  for each user id send the 'message'
-            for member in GroupMembership.select().where(GroupMembership.group==Group.select().where(Group.legacy_name == group_name)):
-                tasks.append(bot.sendMessage(member.user.telegram_id, "Ping from "+legacy_sender+" to "+group_name+":\n\n"+message))
-                success += 1
+        if pingrow["message"] != last_message:
+            last_message = pingrow["message"]
+            for group in legacy_groups:
+                group_name = group.lower().strip()
+                tasks = []
+                success = 0
+                # look up the group,  for each user id send the 'message'
+                for member in GroupMembership.select().where(GroupMembership.group==Group.select().where(Group.legacy_name == group_name)):
+                    tasks.append(bot.sendMessage(member.user.telegram_id, "Ping from "+legacy_sender+" to "+group_name+":\n\n"+message))
+                    success += 1
 
-            def chunks(l, n):
-                for i in range(0, len(l), n):
-                    yield l[i:i+n]
+                def chunks(l, n):
+                    for i in range(0, len(l), n):
+                        yield l[i:i+n]
 
-            start_time = time.time()
+                start_time = time.time()
 
-            for chunk in chunks(tasks,  get_config_item("THROTTLE_CHUNK_SIZE", 20)):
-                await asyncio.gather(*chunk)
-                await asyncio.sleep(1)
+                for chunk in chunks(tasks,  get_config_item("THROTTLE_CHUNK_SIZE", 20)):
+                    await asyncio.gather(*chunk)
+                    await asyncio.sleep(1)
 
-            elapsed = time.time() - start_time
+                elapsed = time.time() - start_time
 
-            rounded = math.floor(elapsed*100)/100
+                rounded = math.floor(elapsed*100)/100
 
-            msg += "Ping sent to  "+str(success)+" users for "+group_name+" in "+str(rounded)+" seconds\n"
+                msg += "Ping sent to  "+str(success)+" users for "+group_name+" in "+str(rounded)+" seconds\n"
 
     print(msg)
 
