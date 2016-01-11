@@ -10,11 +10,13 @@ import json
 import re
 import sys
 import traceback
+import datetime
 
 last_message = ""
+last_message_time = datetime.datetime.min
 
 async def legacy_parse(request):
-    global last_message
+    global last_message, last_message_time
     data = await request.post()
     raw = data["messages"]
 
@@ -49,8 +51,9 @@ async def legacy_parse(request):
         legacy_groups = m.groups()[0].split(";")
         legacy_sender = m.groups()[1]
         message = m.groups()[2]
-        if pingrow["message"] != last_message:
+        if pingrow["message"] != last_message or last_message_time + datetime.timedelta(minutes=30) < datetime.datetime.now():
             last_message = pingrow["message"]
+            last_message_time = datetime.datetime.now()
             for group in legacy_groups:
                 group_name = group.lower().strip()
                 tasks = []
