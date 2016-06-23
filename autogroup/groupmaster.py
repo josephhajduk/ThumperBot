@@ -3,7 +3,7 @@ import datetime
 import traceback
 import logging
 import time
-from botdata import Group, User, GroupLink, GroupMembership, GroupApproval, Character, get_config_item
+from botdata import Group, User, GroupLink, GroupMembership, GroupApproval, Character, get_config_item, db
 
 async def group_loop(bot, loop):
     while True:
@@ -11,6 +11,7 @@ async def group_loop(bot, loop):
         tasks = [auto_group(u) for u in User.select()]
         await asyncio.gather(*tasks)
         await asyncio.sleep(get_config_item("AUTOGROUP_INTERVAL", 60 * 5))  # run check every 5 minutes
+
 
 async def auto_group_char(user, character):
     try:
@@ -31,19 +32,17 @@ async def auto_group_char(user, character):
 
             linked_group = Group.select().where(Group.group_name == linked_group_name).get()
 
-            # make sure this character satisfies every link for this group
             add = True
+            link_fields = {link.character_field_name: False for link in
+                           GroupLink.select().where(GroupLink.group == linked_group)}
 
-            link_fields = {link.character_field_name: False for link in GroupLink.select().where(GroupLink.group == linked_group)}
-
+            # make sure this character satisfies every link for this group
             for link in GroupLink.select().where(GroupLink.group == linked_group):
                 if getattr(character, link.character_field_name) == link.field_value:
                     link_fields[link.character_field_name] = True
-
             for lf in link_fields:
                 add = add and link_fields[lf]
 
-            # see if this character has been approved
             approved = linked_group.auto_approval
             if len(GroupApproval.select().where(
                             GroupApproval.user == user,
@@ -55,27 +54,29 @@ async def auto_group_char(user, character):
                     user=user,
                     group=linked_group
                 )
-                logging.warning("Added "+player_name + " to " + linked_group.group_name)
+                logging.warning("Added " + player_name + " to " + linked_group.group_name)
 
     except:
         traceback.print_exc()
 
+
 async def auto_group(user):
     try:
-        player_name = user.display_name()
-        characters = list(user.characters)
+        with db.atomic() as txn:
+            player_name = user.display_name()
+            characters = list(user.characters)
 
-        logging.info("Autogrouping "+player_name)
+            logging.info("Autogrouping " + player_name)
 
-        # kill all linked groups
-        for group_membership in user.group_memberships.filter(GroupMembership.linked == True):
-            group_membership.delete_instance()
-            group_membership.save()
-            logging.warning("Purged "+player_name + " from " + group_membership.group.group_name)
+            # kill all linked groups
+            for group_membership in user.group_memberships.filter(GroupMembership.linked == True):
+                group_membership.delete_instance()
+                group_membership.save()
+                logging.warning("Purged " + player_name + " from " + group_membership.group.group_name)
 
-        # add back groups
-        for character in characters:
-            await auto_group_char(user, character)
+            # add back groups
+            for character in characters:
+                await auto_group_char(user, character)
     except:
-        logging.warning("Failed to auto_group: "+player_name)
+        logging.warning("Failed to auto_group: " + player_name)
         traceback.print_exc()

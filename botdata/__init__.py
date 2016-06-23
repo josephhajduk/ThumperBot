@@ -4,6 +4,7 @@ from botdata.user import *
 from botdata.base import *
 from botdata.group import *
 from botdata.config import *
+from botdata.base import db
 
 #db.create_table(ConfigItem)
 

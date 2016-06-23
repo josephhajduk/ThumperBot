@@ -1,0 +1,8 @@
+((((( WHICH_CHARACTER )))))
+Which character?
+((((( CANT_FIND_CHARACTER )))))
+I dont know of any character named {{ command.char_name }}
+((((( ALTSOF )))))
+I found the following *{{ command.characters|length }}* alts of *{{ command.char_name }}*:
+{% for char in command.characters %}
+*{{ char.name }}* in a _{{ char.shiptype_name }}_ located in _{{ char.location }}_{% endfor %}

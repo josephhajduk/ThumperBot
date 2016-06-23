@@ -1,6 +1,4 @@
-import telepot
 import shlex
-import datetime
 import logging
 from conversationhandler import strings
 from commands import *
@@ -67,9 +65,6 @@ class ConversationHandler(telepot.helper.ChatHandler):
 
     async def on_message(self, msg):
         logging.info("received message:"+str(msg))
-
-        #update user every message
-
         content_type, chat_type, chat_id = telepot.glance2(msg)
 
         if "from" in msg:
@@ -80,12 +75,14 @@ class ConversationHandler(telepot.helper.ChatHandler):
                 from_name += msg["from"]["last_name"]+" "
             if "username" in msg["from"]:
                 from_name += "| "+msg["from"]["username"]+" "
-            strmsg = "'"+content_type+"': "+str(msg[content_type])
+
+            message_string = "'"+content_type+"': "+str(msg[content_type])
+
             print("[{0}] [TEL: {1} | {2}]: {3}".format(
                 datetime.datetime.fromtimestamp(int(msg["date"])).strftime('%Y-%m-%d %H:%M:%S'),
                 msg["from"]["id"],
                 from_name,
-                strmsg))
+                message_string))
 
             self.telegram_id = msg["from"]["id"]
             self.user, created = User.create_or_get(telegram_id=self.telegram_id)
@@ -99,7 +96,7 @@ class ConversationHandler(telepot.helper.ChatHandler):
                 if msg["text"] == "/cancel":
                     self.current_command.cancel()
                     return (await self.sender.sendMessage(_s["msg_cancelled_command"],
-                                                               reply_markup={'hide_keyboard': True}))
+                                                          reply_markup={'hide_keyboard': True}))
             await self.current_command.msg(msg, self)
         else:
             if content_type == 'text':

@@ -60,7 +60,7 @@ async def legacy_parse(request):
                 success = 0
                 # look up the group,  for each user id send the 'message'
                 for member in GroupMembership.select().where(GroupMembership.group==Group.select().where(Group.legacy_name == group_name)):
-                    tasks.append(bot.sendMessage(member.user.telegram_id, "Ping from "+legacy_sender+" to "+group_name+":\n\n"+message))
+                    tasks.append(safe_send(member.user.telegram_id, "Ping from "+legacy_sender+" to "+group_name+":\n\n"+message))
                     success += 1
 
                 def chunks(l, n):
@@ -84,6 +84,13 @@ async def legacy_parse(request):
     return web.Response(body=msg.encode('utf-8'))
 
 
+@asyncio.coroutine
+def safe_send(telegram_id,  text):
+    try:
+        yield from bot.sendMessage(telegram_id, text)
+    except:
+        print("failed to send to:"+str(telegram_id))
+
 async def legacy_pinggroup(request):
     group = request.match_info.get('group', "group")
     text = request.match_info.get('text', "'message'")
@@ -93,7 +100,7 @@ async def legacy_pinggroup(request):
     success = 0
     # look up the group,  for each user id send the 'message'
     for member in GroupMembership.select().where(GroupMembership.group==Group.select().where(Group.legacy_name == group)):
-        tasks.append(bot.sendMessage(member.user.telegram_id, "Ping from "+fromp+" to "+group+":\n\n"+text))
+        tasks.append(safe_send(member.user.telegram_id, "Ping from "+fromp+" to "+group+":\n\n"+text))
         success += 1
 
     def chunks(l, n):

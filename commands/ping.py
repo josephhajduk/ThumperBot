@@ -51,12 +51,20 @@ class Ping(BotCommand):
                 yield from chat_handler.sender.sendMessage(_s["msg_notagroup"])
 
     @asyncio.coroutine
+    def safe_send(self, telegram_id,  main_character_name, group_name, msg):
+        try:
+            yield from self.bot.sendMessage(telegram_id, "Ping from:" + main_character_name + " to " + group_name + ":\n\n" + msg["text"])
+        except:
+            print("failed to send to:"+str(telegram_id)+" "+main_character_name)
+
+    @asyncio.coroutine
     def handle_message(self, msg, chat_handler):
         content_type, chat_type, chat_id = telepot.glance2(msg)
         tasks = []
         success = 0
         failure = 0
         muted = 0
+
 
         for group_membership in GroupMembership.select().where(GroupMembership.group == self._group):
             try:
@@ -66,7 +74,7 @@ class Ping(BotCommand):
                     group_name = self._group.group_name
 
                     if content_type == "text":
-                        tasks.append(self.bot.sendMessage(telegram_id, "Ping from:" + main_character_name + " to " + group_name + ":\n\n" + msg["text"]))
+                        tasks.append(self.safe_send(telegram_id, main_character_name, group_name, msg))
 
                     elif content_type == "photo":
                         tasks.append(self.bot.sendMessage(telegram_id,"Ping from:" + main_character_name + " to " + group_name))
