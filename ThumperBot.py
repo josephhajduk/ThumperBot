@@ -9,9 +9,7 @@ from conversationhandler import ConversationHandler
 from apipull.apipull import check_api_loop
 from autogroup.groupmaster import group_loop
 
-TOKEN2 = "170018274:AAHJ_J3dGa4bQVyHk5KNXtITswr-2sfk2dM"
-TOKEN3 = "154397353:AAEChVXNz7BXxenwjNokfryfZqUgiwZLN6A"
-
+TOKEN = "154397353:AAEChVXNz7BXxenwjNokfryfZqUgiwZLN6A"
 
 class LoggedDelegatorBot(telepot.async.DelegatorBot):
     def __init__(self, token, delegation_patterns, loop=None):
@@ -21,7 +19,7 @@ class LoggedDelegatorBot(telepot.async.DelegatorBot):
         print("[REPLY TO: "+str(chat_id)+"]:\n"+str(text))
         await super(LoggedDelegatorBot, self).sendMessage(chat_id, text, parse_mode, disable_web_page_preview, reply_to_message_id, reply_markup)
 
-bot = LoggedDelegatorBot(get_config_item("TELEPOT_TOKEN", TOKEN3), [
+bot = LoggedDelegatorBot(get_config_item("TELEPOT_TOKEN", TOKEN), [
     (per_chat_id(), create_open(ConversationHandler, timeout=get_config_item("TELEPOT_CONVO_TIMEOUT", 60*10))),
 ])
 
