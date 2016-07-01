@@ -22,7 +22,7 @@ class Ops(BotCommand):
             ncdotgroup = Group.select().where(Group.group_name == get_config_item("OPS_GROUP", "ncdot")).get()
             if len(GroupMembership.select().where(GroupMembership.group == ncdotgroup, GroupMembership.user == chat_handler.user))> 0:
                 try:
-                    r = await aiohttp.get(get_config_item("OPS_JSON_URL", 'https://ops.ncdot.co.uk/currentops&pw=pvG8fOpHNQ'))
+                    r = await aiohttp.get(get_config_item("OPS_JSON_URL", 'ncdotopsurl'))
                     self._ops = (await r.json())["ops"]
                     self.finished()
                     if self._ops != []:
