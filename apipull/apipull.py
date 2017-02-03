@@ -40,6 +40,7 @@ async def run_key(bot, apikey):
 
         auth = api.auth(keyID=key_id, vCode=code)
 
+
         minimal_mask = get_config_item("API_MINIMUM_MASK", 16777216)
         result1 = (await auth.account.APIKeyInfo()).key
 
@@ -82,20 +83,17 @@ async def run_key(bot, apikey):
                     location = character_info.lastKnownLocation
 
                 if hasattr(character_info, "alliance"):
-                    db_character.corporation_name = character_info.corporation
-                    db_character.corporation_id = character_info.corporationID
                     db_character.alliance_name = character_info.alliance
                     db_character.alliance_id = character_info.allianceID
                     db_character.shiptype_name = character_info.shipTypeName
                     db_character.shiptype_id = character_info.shipTypeID
                     db_character.location = location
                 else:
-                    if hasattr(character_info, "alliance"):
-                        db_character.corporation_name = character_info.corporation
-                        db_character.corporation_id = character_info.corporationID
-                        db_character.shiptype_name = character_info.shipTypeName
-                        db_character.shiptype_id = character_info.shipTypeID
-                        db_character.location = location
+                    db_character.corporation_name = character_info.corporation
+                    db_character.corporation_id = character_info.corporationID
+                    db_character.shiptype_name = character_info.shipTypeName
+                    db_character.shiptype_id = character_info.shipTypeID
+                    db_character.location = location
 
                 db_character.save()
 
