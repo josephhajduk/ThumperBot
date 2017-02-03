@@ -85,10 +85,14 @@ async def run_key(bot, apikey):
                 if hasattr(character_info, "alliance"):
                     db_character.alliance_name = character_info.alliance
                     db_character.alliance_id = character_info.allianceID
+                    db_character.corporation_name = character_info.corporation
+                    db_character.corporation_id = character_info.corporationID
                     db_character.shiptype_name = character_info.shipTypeName
                     db_character.shiptype_id = character_info.shipTypeID
                     db_character.location = location
                 else:
+                    db_character.alliance_name = ""
+                    db_character.alliance_id = 0
                     db_character.corporation_name = character_info.corporation
                     db_character.corporation_id = character_info.corporationID
                     db_character.shiptype_name = character_info.shipTypeName
