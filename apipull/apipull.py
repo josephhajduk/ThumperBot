@@ -66,6 +66,13 @@ async def run_key(bot, apikey):
 
             characters_string = ""
 
+            # remove any characters not on api anymore
+
+            for del_character in Character.select().where(Character.api_key == apikey):
+                if not del_character.name in [x.name for x in result2.characters]:
+                    del_character.delete_instance(recursive=True)
+
+
             for api_character in result2.characters:
 
                 character_info = await auth.eve.CharacterInfo(characterID=api_character.characterID)
